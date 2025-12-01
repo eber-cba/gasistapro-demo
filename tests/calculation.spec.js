@@ -18,8 +18,8 @@ describe("Gas Installation Calculations", () => {
   // Test para la distancia equivalente
   it("calculates equivalent distance correctly", () => {
     const accesorios = [
-      { name: "Codo 90°", cantidad: 2 }, // 2 * 1.00 = 2.00
-      { name: "Llave Esférica", cantidad: 1 }, // 1 * 0.40 = 0.40
+      { tipo: "codo_90", cantidad: 2 }, // 2 * 1.00 = 2.00
+      { tipo: "llave_esferica", cantidad: 1 }, // 1 * 0.40 = 0.40
     ];
     expect(calculateEquivalentDistance(accesorios)).toBe(2.4);
   });
@@ -48,13 +48,13 @@ describe("Gas Installation Calculations", () => {
       {
         // Tramo 2 (más cercano al medidor)
         distancia_real: "10",
-        accesorios: [{ name: "Codo 90°", cantidad: 1 }],
+        accesorios: [{ tipo: "codo_90", cantidad: 1 }],
         artifacts: [{ power_kcalh: 10000 }], // Cocina
       },
       {
         // Tramo 1 (más lejano)
         distancia_real: "5",
-        accesorios: [{ name: "Codo 45°", cantidad: 1 }],
+        accesorios: [{ tipo: "codo_45", cantidad: 1 }],
         artifacts: [{ power_kcalh: 14000 }], // Termotanque
       },
     ];

@@ -3,8 +3,17 @@ import { POWER_FACTOR, ACCESORIOS_EQUIVALENCIAS } from "../data/constants";
 // --- Funciones de Cálculo Puras ---
 
 export function calculateConsumption(artifacts) {
-  // Ahora, los artefactos seleccionados ya tienen su consumo calculado y redondeado.
-  return artifacts.reduce((sum, art) => sum + (art.consumo || 0), 0);
+  // Handle both formats: artifacts with pre-calculated consumo, or with power_kcalh
+  return artifacts.reduce((sum, art) => {
+    if (art.consumo !== undefined) {
+      return sum + art.consumo;
+    }
+    // Fallback: calculate from power_kcalh if consumo is not present
+    if (art.power_kcalh) {
+      return sum + (art.power_kcalh / 9300);
+    }
+    return sum;
+  }, 0);
 }
 
 export function calculateEquivalentDistance(
@@ -54,7 +63,12 @@ export function performFullCalculation(tramos) {
   // 3. Bucle de cálculo iterativo
   calculatedTramos.forEach((t) => {
     // La distancia equivalente de accesorios ya viene pre-calculada en `t.distancia_equivalente`
-    const distanciaEquivalenteAccesorios = t.distancia_equivalente || 0;
+    // Si no viene, la calculamos usando los accesorios
+    let distanciaEquivalenteAccesorios = t.distancia_equivalente;
+    
+    if (distanciaEquivalenteAccesorios === undefined || distanciaEquivalenteAccesorios === null) {
+       distanciaEquivalenteAccesorios = calculateEquivalentDistance(t.accesorios || []);
+    }
 
     // Calcular la distancia definitiva CORRECTA
     const distanciaDefinitiva = calculateDefinitiveDistance(

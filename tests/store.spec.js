@@ -36,12 +36,12 @@ describe("Zustand Store - Professional Logic", () => {
   it("adds and removes an accesorio from a tramo", () => {
     const tramoId = useStore.getState().tramos[0].id;
 
-    act(() => useStore.getState().addAccesorio(tramoId, "Codo 90°"));
+    act(() => useStore.getState().addAccesorio(tramoId));
     let tramo = useStore.getState().tramos[0];
     const accesorioId = tramo.accesorios[0].id;
 
     expect(tramo.accesorios).toHaveLength(1);
-    expect(tramo.accesorios[0].name).toBe("Codo 90°");
+    expect(tramo.accesorios[0].tipo).toBe("codo_90"); // Changed from name to tipo
 
     act(() => useStore.getState().removeAccesorio(tramoId, accesorioId));
     tramo = useStore.getState().tramos[0];

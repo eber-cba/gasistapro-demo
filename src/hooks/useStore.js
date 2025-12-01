@@ -101,7 +101,17 @@ const useStore = create(
               : t
           ),
         })),
-      // ... (otras acciones de artefactos)
+      removeArtifactFromTramo: (tramoId, artifactId) =>
+        set((state) => ({
+          tramos: state.tramos.map((t) =>
+            t.id === tramoId
+              ? {
+                  ...t,
+                  artifacts: t.artifacts.filter((a) => a.id !== artifactId),
+                }
+              : t
+          ),
+        })),
 
       setCalculationResults: (calculatedTramos) =>
         set({ tramos: calculatedTramos }),
