@@ -7,9 +7,9 @@ import {
 describe("Cálculo de Distancia Equivalente", () => {
   const accesoriosEjemplo = [
     { tipo: "codo_90", diametro: "3/4", cantidad: 4 },
-    { tipo: "tee", diametro: "3/4", cantidad: 1 },
+    { tipo: "te_flujo_90", diametro: "3/4", cantidad: 1 },
     { tipo: "codo_90", diametro: "1/2", cantidad: 3 },
-    { tipo: "llave_paso", diametro: "1/2", cantidad: 1 },
+    { tipo: "llave_macho", diametro: "1/2", cantidad: 1 },
   ];
 
   it("debería calcular la suma de equivalencias de accesorios correctamente", () => {
