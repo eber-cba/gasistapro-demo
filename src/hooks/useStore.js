@@ -93,10 +93,8 @@ const useStore = create(
             t.id === tramoId
               ? {
                   ...t,
-                  artifacts: [
-                    ...t.artifacts,
-                    { ...artifact, id: generateUuid() },
-                  ],
+                  // Replace the entire artifacts array with a single-item array
+                  artifacts: [{ ...artifact, id: generateUuid() }],
                 }
               : t
           ),
