@@ -26,7 +26,9 @@ describe('Component Rendering Smoke Tests', () => {
     const addButton = screen.getByText(/Agregar Nuevo Tramo/i);
     fireEvent.click(addButton);
     // Should have 2 tramos now (1 initial + 1 added)
-    const tramoHeaders = screen.getAllByText(/Tramo/i);
-    expect(tramoHeaders.length).toBeGreaterThan(1);
+    // Should have 2 tramos now (1 initial + 1 added)
+    // Since names are now in inputs, we search by display value
+    const tramoInputs = screen.getAllByDisplayValue(/Tramo/i);
+    expect(tramoInputs.length).toBeGreaterThan(1);
   });
 });
