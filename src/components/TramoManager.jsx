@@ -7,9 +7,7 @@ import StepIndicator from "./StepIndicator";
 import SelectorArtefactos from "../modules/ui/selectorArtefactos";
 import SelectorAccesorios from "../modules/ui/selectorAccesorios";
 import CalculationBreakdown from "./CalculationBreakdown";
-import { tablaEquivalencias } from "../modules/accesorios/equivalencias";
-import { ACCESORIOS_EQUIVALENCIAS } from "../data/constants";
-
+import { tablaEquivalencias, ACCESORIOS_EQUIVALENCIAS, nombresAccesorios } from "../modules/accesorios/equivalencias";
 
 const TramoManager = () => {
   const {
@@ -325,46 +323,93 @@ const TramoManager = () => {
                           </div>
                         </div>
 
-                        {/* Accessories Details */}
                         <div style={{ marginBottom: "var(--spacing-4)", padding: "var(--spacing-3)", background: "var(--bg-card)", borderRadius: "var(--radius-md)" }}>
-                          <h4 style={{ fontSize: "var(--font-size-lg)", marginBottom: "var(--spacing-2)", color: "var(--text-primary)" }}>
-                            🔧 Accesorios
+                          <h4 style={{ fontSize: "var(--font-size-lg)", marginBottom: "var(--spacing-3)", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "var(--spacing-2)" }}>
+                            <span style={{ fontSize: "1.2em" }}>🔧</span> Accesorios Seleccionados
                           </h4>
                           {tramo.accesorios && tramo.accesorios.length > 0 ? (
                             <>
-                              <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-secondary)", marginBottom: "var(--spacing-2)" }}>
-                                {tramo.accesorios.map((acc, idx) => (
-                                  <div key={idx} style={{ marginBottom: "var(--spacing-1)" }}>
-                                    • {acc.tipo.replace(/_/g, " ")} ({acc.diametro || "N/A"}) - Cantidad: {acc.cantidad}
-                                  </div>
-                                ))}
+                              <div style={{ overflowX: "auto" }}>
+                                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "var(--font-size-sm)" }}>
+                                  <thead>
+                                    <tr style={{ borderBottom: "2px solid var(--border-light)", color: "var(--text-secondary)", textAlign: "left" }}>
+                                      <th style={{ padding: "var(--spacing-2)", fontWeight: "var(--font-weight-semibold)" }}>Accesorio</th>
+                                      <th style={{ padding: "var(--spacing-2)", fontWeight: "var(--font-weight-semibold)", textAlign: "center" }}>Ø</th>
+                                      <th style={{ padding: "var(--spacing-2)", fontWeight: "var(--font-weight-semibold)", textAlign: "center" }}>Cant.</th>
+                                      <th style={{ padding: "var(--spacing-2)", fontWeight: "var(--font-weight-semibold)", textAlign: "right" }}>Total</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {tramo.accesorios.map((acc, idx) => {
+                                      const nombre = nombresAccesorios[acc.tipo] || acc.tipo;
+                                      const equivUnit = (tablaEquivalencias[acc.diametro]?.[acc.tipo] || 0);
+                                      const subtotal = equivUnit * acc.cantidad;
+                                      
+                                      return (
+                                        <tr key={idx} style={{ borderBottom: "1px solid var(--border-light)" }}>
+                                          <td style={{ padding: "var(--spacing-2)", color: "var(--text-primary)", fontWeight: "var(--font-weight-medium)" }}>
+                                            {nombre}
+                                          </td>
+                                          <td style={{ padding: "var(--spacing-2)", textAlign: "center", color: "var(--text-secondary)" }}>
+                                            <span style={{ background: "var(--bg-secondary)", padding: "2px 6px", borderRadius: "4px", fontSize: "0.9em" }}>
+                                              {acc.diametro}"
+                                            </span>
+                                          </td>
+                                          <td style={{ padding: "var(--spacing-2)", textAlign: "center", fontWeight: "bold", color: "var(--primary-color)" }}>
+                                            {acc.cantidad}
+                                          </td>
+                                          <td style={{ padding: "var(--spacing-2)", textAlign: "right", color: "var(--text-muted)" }}>
+                                            {subtotal.toFixed(2)}m
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
                               </div>
+                              
                               <div style={{ 
-                                marginTop: "var(--spacing-2)", 
+                                marginTop: "var(--spacing-3)", 
                                 paddingTop: "var(--spacing-2)", 
-                                borderTop: "1px solid var(--border-light)",
-                                fontWeight: "var(--font-weight-semibold)",
-                                color: "var(--primary-color)"
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                borderTop: "2px solid var(--border-light)"
                               }}>
-                                Dist. Equiv. Total: {(() => {
-                                  const total = tramo.accesorios.reduce((sum, acc) => {
-                                    // Try to get equivalencia using diametro if available
-                                    let equiv = 0;
-                                    if (acc.diametro && tablaEquivalencias[acc.diametro] && tablaEquivalencias[acc.diametro][acc.tipo]) {
-                                      equiv = tablaEquivalencias[acc.diametro][acc.tipo];
-                                    } else {
-                                      // Fallback to old constant if diametro not available
-                                      equiv = ACCESORIOS_EQUIVALENCIAS[acc.tipo] || 0;
-                                    }
-                                    return sum + (equiv * acc.cantidad);
-                                  }, 0);
-                                  return total.toFixed(2);
-                                })()} m
+                                <span style={{ color: "var(--text-secondary)", fontWeight: "var(--font-weight-medium)" }}>Distancia Equivalente Total:</span>
+                                <span style={{ 
+                                  fontSize: "var(--font-size-lg)", 
+                                  fontWeight: "var(--font-weight-bold)", 
+                                  color: "var(--primary-color)",
+                                  background: "linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)",
+                                  padding: "4px 12px",
+                                  borderRadius: "var(--radius-md)"
+                                }}>
+                                  {(() => {
+                                    const total = tramo.accesorios.reduce((sum, acc) => {
+                                      let equiv = 0;
+                                      if (acc.diametro && tablaEquivalencias[acc.diametro] && tablaEquivalencias[acc.diametro][acc.tipo]) {
+                                        equiv = tablaEquivalencias[acc.diametro][acc.tipo];
+                                      } else {
+                                        equiv = ACCESORIOS_EQUIVALENCIAS[acc.tipo] || 0;
+                                      }
+                                      return sum + (equiv * acc.cantidad);
+                                    }, 0);
+                                    return total.toFixed(2);
+                                  })()} m
+                                </span>
                               </div>
                             </>
                           ) : (
-                            <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-muted)" }}>
-                              Sin accesorios seleccionados
+                            <div style={{ 
+                              padding: "var(--spacing-4)", 
+                              textAlign: "center", 
+                              color: "var(--text-muted)",
+                              background: "var(--bg-secondary)",
+                              borderRadius: "var(--radius-sm)",
+                              fontStyle: "italic"
+                            }}>
+                              No se han seleccionado accesorios para este tramo
                             </div>
                           )}
                         </div>
