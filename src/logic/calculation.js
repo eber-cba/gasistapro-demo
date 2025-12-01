@@ -71,13 +71,9 @@ export function performFullCalculation(tramos) {
 
   // 3. Bucle de cálculo iterativo
   calculatedTramos.forEach((t) => {
-    // La distancia equivalente de accesorios ya viene pre-calculada en `t.distancia_equivalente`
-    // Si no viene, la calculamos usando los accesorios
-    let distanciaEquivalenteAccesorios = t.distancia_equivalente;
-    
-    if (distanciaEquivalenteAccesorios === undefined || distanciaEquivalenteAccesorios === null) {
-       distanciaEquivalenteAccesorios = calculateEquivalentDistance(t.accesorios || []);
-    }
+    // Siempre calcular la distancia equivalente basada en los accesorios actuales
+    // Ignoramos t.distancia_equivalente previo porque puede ser 0 (valor inicial) o estar desactualizado
+    let distanciaEquivalenteAccesorios = calculateEquivalentDistance(t.accesorios || []);
 
     // Calcular la distancia definitiva CORRECTA
     const distanciaDefinitiva = calculateDefinitiveDistance(
