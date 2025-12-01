@@ -62,7 +62,18 @@ export function calcularDiametros(distancia_definitiva, consumo_m3h) {
   steps.push(`Paso 3: Buscando diámetro capaz de suministrar ${consumo_litros_hora.toFixed(0)} l/h en la fila de ${filaSeleccionada.distancia} m.`);
 
   for (const diametro of diametrosDisponibles) {
-    const caudalMaximo = filaSeleccionada[diametro];
+    // Los valores en el JSON son strings con separador de miles (ej: "4,420") o decimales
+    // Asumimos formato español "1.000,00" o "1,000" -> necesitamos valor numérico puro
+    let valorRaw = filaSeleccionada[diametro];
+    if (typeof valorRaw === 'string') {
+      // Eliminar puntos de miles y reemplazar coma decimal por punto si fuera necesario
+      // En este caso el JSON tiene "4,420" que parece ser 4420 (miles con coma) o 4.420 (decimal con coma)?
+      // Revisando el JSON: "13": "3,580" para 2m. 13mm suele llevar ~3-4 m3/h. 3580 l/h tiene sentido.
+      // Entonces la coma es separador de miles.
+      valorRaw = valorRaw.replace(/,/g, '').replace(/\./g, '');
+    }
+    
+    const caudalMaximo = parseFloat(valorRaw);
     
     // Si el caudal máximo de este diámetro soporta el consumo requerido
     if (caudalMaximo >= consumo_litros_hora) {
