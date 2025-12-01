@@ -1,138 +1,93 @@
 import tablaNumero3 from '../data/tablaNumero3.json';
 
-// Helper function to extract consumption keys and their numeric values
-const getConsumoKeys = () => {
-  const keys = Object.keys(tablaNumero3[0]).filter(key => key.startsWith('consumo_'));
-  return keys.map(key => ({
-    key: key,
-    value: parseFloat(key.replace('consumo_', '').replace('_', '.'))
-  })).sort((a, b) => a.value - b.value);
-};
-
-// Helper to get diameter from the table based on row and consumption key
-const getDiameter = (row, consumoKey) => {
-  return row[consumoKey] || null;
-};
-
-// Main calculation function
+/**
+ * Calcula el diámetro de cañería necesario basándose en la Tabla N°3 de Gas Natural.
+ * 
+ * Lógica:
+ * 1. Busca la fila correspondiente a la distancia (inmediata superior).
+ * 2. En esa fila, busca el primer diámetro cuyo caudal máximo permitido sea mayor o igual al consumo requerido.
+ * 
+ * @param {number} distancia_definitiva - Distancia real + equivalente (m)
+ * @param {number} consumo_m3h - Consumo del artefacto (m³/h)
+ * @returns {object} Resultado del cálculo con pasos y validación
+ */
 export function calcularDiametros(distancia_definitiva, consumo_m3h) {
   const steps = [];
-  const consumoKeys = getConsumoKeys();
-
-  steps.push(`Iniciando cálculo para Distancia Definitiva: ${distancia_definitiva} m, Consumo: ${consumo_m3h} m³/h.`);
-  steps.push(`Utilizando la Tabla Nº3 (tablaNumero3.json) para la selección de diámetros.`);
+  
+  steps.push(`Iniciando cálculo para Distancia Definitiva: ${distancia_definitiva.toFixed(2)} m, Consumo: ${consumo_m3h.toFixed(3)} m³/h.`);
+  steps.push(`Utilizando la Tabla Nº3 (Caudales máximos en litros/hora) para la selección de diámetros.`);
 
   let isValid = true;
   let mensaje = '';
-  let diametroProvisorio = null;
-  let diametroDefinitivo = null;
+  let diametroCalculado = null;
 
-  // Get min/max from tablaNumero3
-  const minDistance = tablaNumero3[0].distancia;
-  const maxDistance = tablaNumero3[tablaNumero3.length - 1].distancia;
-  const minConsumo = consumoKeys[0].value;
-  const maxConsumo = consumoKeys[consumoKeys.length - 1].value;
+  // 1. Validar rangos generales
+  // La tabla está ordenada por distancia. Tomamos min y max.
+  const distancias = tablaNumero3.map(r => r.distancia);
+  const minDist = Math.min(...distancias);
+  const maxDist = Math.max(...distancias);
 
-  // Check if inputs are within table range
-  if (distancia_definitiva < minDistance || distancia_definitiva > maxDistance) {
+  if (distancia_definitiva > maxDist) {
     isValid = false;
-    mensaje = `Distancia Definitiva (${distancia_definitiva} m) fuera del rango de la Tabla Nº3 (${minDistance}-${maxDistance} m).`;
+    mensaje = `La distancia (${distancia_definitiva} m) excede el máximo de la tabla (${maxDist} m).`;
     steps.push(`Error: ${mensaje}`);
-  }
-  if (consumo_m3h < minConsumo || consumo_m3h > maxConsumo) {
-    isValid = false;
-    mensaje = (mensaje ? mensaje + ' y ' : '') + `Consumo (${consumo_m3h} m³/h) fuera del rango de la Tabla Nº3 (${minConsumo}-${maxConsumo} m³/h).`;
-    steps.push(`Error: ${mensaje}`);
+    return { isValid, mensaje, steps, diametro_definitivo: null };
   }
 
-  if (!isValid) {
-    return {
-      distancia_definitiva: distancia_definitiva,
-      diametro_provisorio: null,
-      diametro_definitivo: null,
-      steps,
-      isValid,
-      mensaje,
-    };
-  }
+  // 2. Encontrar la fila de distancia adecuada (inmediata superior)
+  // Ejemplo: Si distancia es 2.5m, buscamos la fila de 3m (o la que corresponda según tabla)
+  let filaSeleccionada = tablaNumero3.find(row => row.distancia >= distancia_definitiva);
 
-  // 1. Find relevant distance row(s)
-  let lowerDistRow = null;
-  let upperDistRow = null;
-
-  for (const row of tablaNumero3) {
-    if (row.distancia <= distancia_definitiva) {
-      lowerDistRow = row;
-    }
-    if (row.distancia >= distancia_definitiva) {
-      upperDistRow = row;
-      break;
-    }
-  }
-
-  // Fallback, though inputs should be in range now
-  if (!lowerDistRow) lowerDistRow = tablaNumero3[0];
-  if (!upperDistRow) upperDistRow = tablaNumero3[tablaNumero3.length - 1];
-
-
-  // 2. Find relevant consumption column(s)
-  let lowerConsumoKey = null;
-  let upperConsumoKey = null;
-
-  for (let i = 0; i < consumoKeys.length; i++) {
-    if (consumoKeys[i].value <= consumo_m3h) {
-      lowerConsumoKey = consumoKeys[i];
-    }
-    if (consumoKeys[i].value >= consumo_m3h) {
-      upperConsumoKey = consumoKeys[i];
-      break;
-    }
-  }
-  
-  // Fallback, though inputs should be in range now
-  if (!lowerConsumoKey) lowerConsumoKey = consumoKeys[0];
-  if (!upperConsumoKey) upperConsumoKey = consumoKeys[consumoKeys.length - 1];
-
-  steps.push(`Paso 1: Buscando distancias en la Tabla Nº3 para ${distancia_definitiva} m.`);
-  steps.push(`  - Distancia Inferior (o igual): ${lowerDistRow ? lowerDistRow.distancia : 'N/A'} m.`);
-  steps.push(`  - Distancia Superior (o igual): ${upperDistRow ? upperDistRow.distancia : 'N/A'} m.`);
-  
-  steps.push(`Paso 2: Buscando consumos en la Tabla Nº3 para ${consumo_m3h} m³/h.`);
-  steps.push(`  - Consumo Inferior (o igual): ${lowerConsumoKey ? lowerConsumoKey.value : 'N/A'} m³/h.`);
-  steps.push(`  - Consumo Superior (o igual): ${upperConsumoKey ? upperConsumoKey.value : 'N/A'} m³/h.`);
-
-  // Determine diameter based on closest distance and consumption (always choose larger for safety)
-  // Simplification: For safety, if a value is between two table values, we take the one corresponding to the higher distance/consumption.
-  // This means using upperDistRow and upperConsumoKey for selection.
-
-  if (upperDistRow && upperConsumoKey) {
-    diametroProvisorio = getDiameter(upperDistRow, upperConsumoKey.key);
-    diametroDefinitivo = getDiameter(upperDistRow, upperConsumoKey.key); // For now, assume same
-    steps.push(`Paso 3: Se selecciona el diámetro en la intersección de Distancia ${upperDistRow.distancia} m y Consumo ${upperConsumoKey.value} m³/h de la Tabla Nº3.`);
-    steps.push(`  - Diámetro Provisorio: ${diametroProvisorio}.`);
-    steps.push(`  - Diámetro Definitivo: ${diametroDefinitivo}.`);
+  if (!filaSeleccionada) {
+    // Esto no debería pasar si validamos maxDist, pero por seguridad
+    filaSeleccionada = tablaNumero3[tablaNumero3.length - 1];
+    steps.push(`Advertencia: Usando la última fila de distancia disponible (${filaSeleccionada.distancia} m).`);
   } else {
-    // This case should ideally not be hit if isValid check passes, but as a safeguard
+    steps.push(`Paso 1: Seleccionada fila de distancia: ${filaSeleccionada.distancia} m (para cubrir ${distancia_definitiva} m).`);
+  }
+
+  // 3. Buscar el diámetro adecuado en la fila seleccionada
+  // La fila tiene claves numéricas que representan los diámetros (ej: "13", "19", "25"...)
+  // Los valores son caudales en Litros/Hora. Debemos convertir el consumo de m3/h a Litros/Hora.
+  
+  const consumo_litros_hora = consumo_m3h * 1000;
+  steps.push(`Paso 2: Conversión de consumo: ${consumo_m3h} m³/h = ${consumo_litros_hora.toFixed(0)} l/h.`);
+
+  // Obtener todas las claves que son diámetros (excluyendo "distancia")
+  // Asumimos que las claves numéricas son los diámetros en mm
+  const diametrosDisponibles = Object.keys(filaSeleccionada)
+    .filter(k => k !== 'distancia')
+    .sort((a, b) => parseFloat(a) - parseFloat(b)); // Ordenar de menor a mayor diámetro
+
+  steps.push(`Paso 3: Buscando diámetro capaz de suministrar ${consumo_litros_hora.toFixed(0)} l/h en la fila de ${filaSeleccionada.distancia} m.`);
+
+  for (const diametro of diametrosDisponibles) {
+    const caudalMaximo = filaSeleccionada[diametro];
+    
+    // Si el caudal máximo de este diámetro soporta el consumo requerido
+    if (caudalMaximo >= consumo_litros_hora) {
+      diametroCalculado = diametro; // Este es el diámetro en mm (ej: "13", "19")
+      steps.push(`✅ Encontrado: Diámetro ${diametro} mm soporta hasta ${caudalMaximo} l/h.`);
+      break;
+    } else {
+      // steps.push(`  - Diámetro ${diametro} mm: Insuficiente (max ${caudalMaximo} l/h).`);
+    }
+  }
+
+  if (!diametroCalculado) {
     isValid = false;
-    mensaje = "Error interno: No se pudo determinar el diámetro con los datos proporcionados.";
-    steps.push(`Paso 3: Error interno en la determinación del diámetro.`);
+    mensaje = `No se encontró un diámetro capaz de soportar el consumo de ${consumo_m3h} m³/h a ${distancia_definitiva} m.`;
+    steps.push(`Error: ${mensaje}`);
+  } else {
+    steps.push(`Resultado: Diámetro seleccionado ${diametroCalculado} mm.`);
   }
-
-  // Handle cases where diameter might be null from table lookup (e.g., if a cell is empty in JSON)
-  if (isValid && (!diametroProvisorio || !diametroDefinitivo)) {
-      isValid = false;
-      mensaje = "El diámetro resultante de la búsqueda en la Tabla Nº3 es nulo. Verifique los rangos de entrada.";
-      steps.push(`Advertencia: El diámetro obtenido de la Tabla Nº3 es nulo. Asegúrese de que los valores de entrada estén dentro de los rangos de la tabla.`);
-  }
-
 
   return {
-    distancia_definitiva: distancia_definitiva,
-    diametro_provisorio: diametroProvisorio,
-    diametro_definitivo: diametroDefinitivo,
+    distancia_definitiva,
+    diametro_provisorio: diametroCalculado, // Mantenemos compatibilidad de nombres
+    diametro_definitivo: diametroCalculado,
     steps,
     isValid,
     mensaje,
   };
 }
-
