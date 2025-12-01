@@ -6,10 +6,7 @@ import { tablaEquivalencias } from "../accesorios/equivalencias";
 
 const SelectorAccesorios = ({ accesorios = [], onAccesorioChange }) => {
   const handleAccesorioChange = (tipo, diametro, cantidad) => {
-    // Create a new array to avoid mutating props directly if they were passed by reference
-    // although in React props should be immutable.
-    // We will build the new list based on the current props.
-    
+    // Need to store both tipo AND diametro to differentiate same tipo with different diameters
     const existingIndex = accesorios.findIndex(
       (a) => a.tipo === tipo && a.diametro === diametro
     );
@@ -17,15 +14,19 @@ const SelectorAccesorios = ({ accesorios = [], onAccesorioChange }) => {
     let newAccesorios;
     if (existingIndex >= 0) {
       if (cantidad > 0) {
+        // Update existing
         newAccesorios = accesorios.map((a, index) => 
           index === existingIndex ? { ...a, cantidad } : a
         );
       } else {
+        // Remove if quantity is 0
         newAccesorios = accesorios.filter((_, index) => index !== existingIndex);
       }
     } else if (cantidad > 0) {
+      // Add new - include both tipo and diametro
       newAccesorios = [...accesorios, { tipo, diametro, cantidad }];
     } else {
+      // No change needed
       newAccesorios = accesorios;
     }
 
@@ -80,10 +81,10 @@ const SelectorAccesorios = ({ accesorios = [], onAccesorioChange }) => {
               {Object.keys(tablaEquivalencias).map((diametro, dIndex) =>
                 Object.keys(tablaEquivalencias[diametro]).map((tipo, tIndex) => {
                   const equivalencia = tablaEquivalencias[diametro][tipo];
-                  const cantidad =
-                    accesorios.find(
-                      (a) => a.tipo === tipo && a.diametro === diametro
-                    )?.cantidad || 0;
+                  // Search by both tipo AND diametro to differentiate same tipo with different diameters
+                  const cantidad = accesorios.find(
+                    (a) => a.tipo === tipo && a.diametro === diametro
+                  )?.cantidad || 0;
                   const subtotal = (cantidad * equivalencia).toFixed(2);
                   const isHighlighted = cantidad > 0;
 
@@ -125,6 +126,9 @@ const SelectorAccesorios = ({ accesorios = [], onAccesorioChange }) => {
                             border: isHighlighted ? "2px solid var(--primary-color)" : "1px solid var(--border-color)",
                             borderRadius: "var(--radius-md)",
                             fontSize: "var(--font-size-sm)",
+                            background: "white",
+                            color: "#000",
+                            cursor: "text",
                           }}
                         />
                       </td>

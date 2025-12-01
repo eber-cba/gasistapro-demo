@@ -1,4 +1,5 @@
 import { POWER_FACTOR, ACCESORIOS_EQUIVALENCIAS } from "../data/constants";
+import { tablaEquivalencias } from "../modules/accesorios/equivalencias";
 
 // --- Funciones de Cálculo Puras ---
 
@@ -23,8 +24,16 @@ export function calculateEquivalentDistance(
   if (sumaEquivalenciasPrecalculada !== undefined) {
     return sumaEquivalenciasPrecalculada;
   }
+  
   return accesorios.reduce((total, acc) => {
-    const equivalencia = ACCESORIOS_EQUIVALENCIAS[acc.tipo] || 0;
+    // Try to get equivalencia using diametro if available
+    let equivalencia = 0;
+    if (acc.diametro && tablaEquivalencias[acc.diametro] && tablaEquivalencias[acc.diametro][acc.tipo]) {
+      equivalencia = tablaEquivalencias[acc.diametro][acc.tipo];
+    } else {
+      // Fallback to old constant if diametro not available
+      equivalencia = ACCESORIOS_EQUIVALENCIAS[acc.tipo] || 0;
+    }
     return total + equivalencia * Number(acc.cantidad);
   }, 0);
 }
