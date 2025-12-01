@@ -51,10 +51,12 @@ const TramoManager = () => {
   // If I replace the list, I should probably generate IDs or just not worry if I don't use individual update actions anymore.
   
   const handleAccesoriosChange = (tramoId, newAccesorios) => {
-    // Ensure they have IDs if missing (though not strictly needed for calculation)
+    // Remove 'diametro' field and ensure they have IDs
+    // The calculation only needs {tipo, cantidad}
     const accessoriesWithIds = newAccesorios.map(a => ({
-      ...a,
-      id: a.id || Date.now() + Math.random().toString()
+      id: a.id || Date.now() + Math.random().toString(),
+      tipo: a.tipo,
+      cantidad: a.cantidad
     }));
     updateTramo(tramoId, "accesorios", accessoriesWithIds);
   };
