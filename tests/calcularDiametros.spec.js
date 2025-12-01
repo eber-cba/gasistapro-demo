@@ -2,57 +2,61 @@ import { describe, it, expect } from 'vitest';
 import { calcularDiametros } from '../src/logic/calcularDiametros';
 
 describe('calcularDiametros', () => {
-  it('should calculate diameters for exact distance and consumption', () => {
-    const result = calcularDiametros(5, 1.0); // dist 5m, consumo 1.0 m3/h -> ½"
-    expect(result.diametro_provisorio).toBe('½"');
-    expect(result.diametro_definitivo).toBe('½"');
+  it('should calculate diameters correctly for exact distance and consumption', () => {
+    // Distancia 2m, Consumo 3.5 m3/h (3500 l/h)
+    // Tabla 2m: 13mm -> 3580 l/h
+    // Debería seleccionar 13
+    const result = calcularDiametros(2, 3.5); 
+    expect(result.diametro_provisorio).toBe('13');
+    expect(result.diametro_definitivo).toBe('13');
     expect(result.isValid).toBe(true);
   });
 
-  it('should choose the safer (larger) diameter when distance is between table values', () => {
-    // Distance 7m (between 5 and 10), Consumption 1.0 m3/h
-    // For 5m, 1.0 m3/h -> ½"
-    // For 10m, 1.0 m3/h -> ¾"
-    // Should choose ¾"
-    const result = calcularDiametros(7, 1.0); 
-    expect(result.diametro_provisorio).toBe('¾"');
-    expect(result.diametro_definitivo).toBe('¾"');
+  it('should choose larger diameter when consumption exceeds limit of smaller one', () => {
+    // Distancia 2m, Consumo 4.0 m3/h (4000 l/h)
+    // Tabla 2m: 13mm -> 3580 l/h (insuficiente)
+    // Tabla 2m: 19mm -> 9895 l/h (suficiente)
+    // Debería seleccionar 19
+    const result = calcularDiametros(2, 4.0); 
+    expect(result.diametro_provisorio).toBe('19');
+    expect(result.diametro_definitivo).toBe('19');
     expect(result.isValid).toBe(true);
   });
 
-  it('should choose the safer (larger) diameter when consumption is between table values', () => {
-    // Distance 5m, Consumption 0.7 m3/h (between 0.5 and 1.0)
-    // For 5m, 0.5 m3/h -> ½"
-    // For 5m, 1.0 m3/h -> ½"
-    // Should choose ½" (or the largest if different, but in this case they are the same)
-    const result = calcularDiametros(5, 0.7); 
-    expect(result.diametro_provisorio).toBe('½"');
-    expect(result.diametro_definitivo).toBe('½"');
+  it('should use next available distance row if exact distance not found', () => {
+    // Distancia 2.5m (no existe, usa 3m)
+    // Consumo 2.0 m3/h (2000 l/h)
+    // Tabla 3m: 13mm -> 2925 l/h
+    // Debería seleccionar 13
+    const result = calcularDiametros(2.5, 2.0); 
+    expect(result.diametro_provisorio).toBe('13');
+    expect(result.diametro_definitivo).toBe('13');
     expect(result.isValid).toBe(true);
   });
 
-  it('should choose the safer (larger) diameter for distance 12m, consumo 1.2m3/h', () => {
-    // For 10m, 1.0 m3/h -> ¾"
-    // For 10m, 1.5 m3/h -> ¾"
-    // For 15m, 1.0 m3/h -> ¾"
-    // For 15m, 1.5 m3/h -> 1"
-    // With 12m and 1.2m3/h, it should pick based on 15m and 1.5m3/h values (upper bounds for safety)
-    const result = calcularDiametros(12, 1.2); 
-    expect(result.diametro_provisorio).toBe('1"'); // Based on 15m, 1.5m3/h lookup
-    expect(result.diametro_definitivo).toBe('1"');
+  it('should handle larger distances correctly', () => {
+    // Distancia 10m, Consumo 2.0 m3/h (2000 l/h)
+    // Tabla 10m: 13mm -> 1600 l/h (insuficiente)
+    // Tabla 10m: 19mm -> 4420 l/h (suficiente)
+    // Debería seleccionar 19
+    const result = calcularDiametros(10, 2.0); 
+    expect(result.diametro_provisorio).toBe('19');
+    expect(result.diametro_definitivo).toBe('19');
     expect(result.isValid).toBe(true);
   });
 
   it('should return isValid false for out of range distance', () => {
-    const result = calcularDiametros(100, 1.0); // Out of max distance 40
+    const result = calcularDiametros(300, 1.0); // Max distance is usually 200m or less in table
     expect(result.isValid).toBe(false);
-    expect(result.mensaje).toContain('fuera del rango');
+    expect(result.mensaje).toContain('excede el máximo');
   });
 
-  it('should return isValid false for out of range consumption', () => {
-    const result = calcularDiametros(5, 10.0); // Out of max consumption 5.0
+  it('should return isValid false if consumption is too high for any diameter', () => {
+    // Distancia 10m, Consumo 1000 m3/h (1,000,000 l/h)
+    // Max en 10m es 101mm -> 287,189 l/h
+    const result = calcularDiametros(10, 1000); 
     expect(result.isValid).toBe(false);
-    expect(result.mensaje).toContain('fuera del rango');
+    expect(result.mensaje).toContain('No se encontró un diámetro');
   });
 
   it('should include steps in the result', () => {
