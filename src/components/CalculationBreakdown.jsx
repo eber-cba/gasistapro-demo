@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaCalculator, FaTable, FaArrowRight } from 'react-icons/fa';
+import { tablaEquivalencias, nombresAccesorios } from '../modules/accesorios/equivalencias';
 import './CalculationBreakdown.css';
 
 const CalculationBreakdown = ({ tramo, calculationSteps = null }) => {
@@ -82,11 +83,12 @@ const CalculationBreakdown = ({ tramo, calculationSteps = null }) => {
             {accesorios.map((acc, idx) => {
               const equivalencia = getEquivalencia(acc);
               const subtotal = equivalencia * acc.cantidad;
+              const nombreDisplay = nombresAccesorios[acc.tipo] || acc.tipo.replace(/_/g, ' ');
               
               return (
                 <div key={idx} className="accessory-calc">
                   <div className="accessory-name">
-                    {acc.tipo.replace(/_/g, ' ')} ({acc.diametro || 'N/A'})
+                    {nombreDisplay} ({acc.diametro || 'N/A'})
                   </div>
                   <div className="calculation-steps">
                     <div className="calc-step">
@@ -205,43 +207,26 @@ const CalculationBreakdown = ({ tramo, calculationSteps = null }) => {
   );
 };
 
-// Helper function to get equivalencia from tabla 18
+// Helper function to get equivalencia from tabla 18 with legacy support
 const getEquivalencia = (accesorio) => {
-  // Esta es una función helper que debería importar tablaEquivalencias
-  // Por ahora retorna un valor por defecto
-  const tablaEquivalencias = {
-    "3/4": {
-      codo_90: 0.57,
-      tee: 1.14,
-      llave_paso: 0.2,
-      reduccion: 0.3,
-      union: 0.1,
-    },
-    "1/2": {
-      codo_90: 0.39,
-      tee: 0.78,
-      llave_paso: 1.3,
-      reduccion: 0.25,
-      union: 0.08,
-    },
-    1: {
-      codo_90: 0.76,
-      tee: 1.52,
-      llave_paso: 0.25,
-      reduccion: 0.35,
-      union: 0.12,
-    },
-    "3/8": {
-      codo_90: 0.3,
-      tee: 0.6,
-      llave_paso: 1.1,
-      reduccion: 0.2,
-      union: 0.06,
-    },
-  };
+  if (!accesorio.diametro || !tablaEquivalencias[accesorio.diametro]) {
+    return 0;
+  }
 
-  if (accesorio.diametro && tablaEquivalencias[accesorio.diametro]) {
-    return tablaEquivalencias[accesorio.diametro][accesorio.tipo] || 0;
+  const tabla = tablaEquivalencias[accesorio.diametro];
+  
+  // Try direct match first
+  if (tabla[accesorio.tipo] !== undefined) {
+    return tabla[accesorio.tipo];
+  }
+  
+  // Legacy mappings
+  if (accesorio.tipo === "tee") {
+    return tabla["te_flujo_traves"] || 0;
+  }
+  
+  if (accesorio.tipo === "llave_paso") {
+    return tabla["llave_macho"] || 0;
   }
   
   return 0;
