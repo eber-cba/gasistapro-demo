@@ -6,6 +6,7 @@ import useStore from "../hooks/useStore";
 import StepIndicator from "./StepIndicator";
 import SelectorArtefactos from "../modules/ui/selectorArtefactos";
 import SelectorAccesorios from "../modules/ui/selectorAccesorios";
+import { tablaEquivalencias } from "../modules/accesorios/equivalencias";
 
 const TramoManager = () => {
   const {
@@ -33,6 +34,7 @@ const TramoManager = () => {
     const accessoriesWithIds = newAccesorios.map(a => ({
       id: a.id || Date.now() + Math.random().toString(),
       tipo: a.tipo,
+      diametro: a.diametro,
       cantidad: a.cantidad
     }));
     updateTramo(tramoId, "accesorios", accessoriesWithIds);
@@ -278,21 +280,76 @@ const TramoManager = () => {
                         <h3 style={{ color: "var(--primary-color)", marginBottom: "var(--spacing-4)" }}>
                           ✅ Resumen del Tramo
                         </h3>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-3)" }}>
+                        
+                        {/* Artifact Details */}
+                        <div style={{ marginBottom: "var(--spacing-4)", padding: "var(--spacing-3)", background: "var(--bg-card)", borderRadius: "var(--radius-md)" }}>
+                          <h4 style={{ fontSize: "var(--font-size-lg)", marginBottom: "var(--spacing-2)", color: "var(--text-primary)" }}>
+                            🔥 Artefacto
+                          </h4>
                           <div>
-                            <strong>Artefacto:</strong> {tramo.artifacts[0]?.name || "No seleccionado"}
-                          </div>
-                          <div>
-                            <strong>Distancia Real:</strong> {tramo.distancia_real || "0"} m
-                          </div>
-                          <div>
-                            <strong>Accesorios:</strong> {tramo.accesorios?.length || 0} seleccionados
+                            <strong>{tramo.artifacts[0]?.name || "No seleccionado"}</strong>
+                            {tramo.artifacts[0]?.power_kcalh && (
+                              <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-muted)", marginTop: "var(--spacing-1)" }}>
+                                Potencia: {tramo.artifacts[0].power_kcalh.toLocaleString("es-AR")} Kcal/h
+                                {tramo.artifacts[0].consumo && (
+                                  <span> → {tramo.artifacts[0].consumo.toLocaleString("es-AR")} m³/h</span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
+
+                        {/* Distance */}
+                        <div style={{ marginBottom: "var(--spacing-4)", padding: "var(--spacing-3)", background: "var(--bg-card)", borderRadius: "var(--radius-md)" }}>
+                          <h4 style={{ fontSize: "var(--font-size-lg)", marginBottom: "var(--spacing-2)", color: "var(--text-primary)" }}>
+                            📏 Distancia Real
+                          </h4>
+                          <div>
+                            <strong>{tramo.distancia_real ? `${tramo.distancia_real.replace('.', ',')} m` : "0 m"}</strong>
+                          </div>
+                        </div>
+
+                        {/* Accessories Details */}
+                        <div style={{ marginBottom: "var(--spacing-4)", padding: "var(--spacing-3)", background: "var(--bg-card)", borderRadius: "var(--radius-md)" }}>
+                          <h4 style={{ fontSize: "var(--font-size-lg)", marginBottom: "var(--spacing-2)", color: "var(--text-primary)" }}>
+                            🔧 Accesorios
+                          </h4>
+                          {tramo.accesorios && tramo.accesorios.length > 0 ? (
+                            <>
+                              <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-secondary)", marginBottom: "var(--spacing-2)" }}>
+                                {tramo.accesorios.map((acc, idx) => (
+                                  <div key={idx} style={{ marginBottom: "var(--spacing-1)" }}>
+                                    • {acc.tipo.replace(/_/g, " ")} ({acc.diametro || "N/A"}) - Cantidad: {acc.cantidad}
+                                  </div>
+                                ))}
+                              </div>
+                              <div style={{ 
+                                marginTop: "var(--spacing-2)", 
+                                paddingTop: "var(--spacing-2)", 
+                                borderTop: "1px solid var(--border-light)",
+                                fontWeight: "var(--font-weight-semibold)",
+                                color: "var(--primary-color)"
+                              }}>
+                                Dist. Equiv. Total: {(() => {
+                                  const total = tramo.accesorios.reduce((sum, acc) => {
+                                    const equiv = tablaEquivalencias[acc.diametro]?.[acc.tipo] || 0;
+                                    return sum + (equiv * acc.cantidad);
+                                  }, 0);
+                                  return total.toFixed(2);
+                                })()} m
+                              </div>
+                            </>
+                          ) : (
+                            <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-muted)" }}>
+                              Sin accesorios seleccionados
+                            </div>
+                          )}
+                        </div>
+
                         <div style={{
                           marginTop: "var(--spacing-4)",
                           padding: "var(--spacing-3)",
-                          background: "var(--bg-card)",
+                          background: "var(--bg-secondary)",
                           borderRadius: "var(--radius-md)",
                           fontSize: "var(--font-size-sm)",
                           color: "var(--text-muted)",
