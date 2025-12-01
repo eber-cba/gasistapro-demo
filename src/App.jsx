@@ -1,12 +1,10 @@
 import React from 'react';
 import Home from './pages/Home';
-import './styles/variables.css';
+import './index.css'; // Global styles including variables
 
 function App() {
   return (
-    <div className="App">
-      <Home />
-    </div>
+    <Home />
   );
 }
 

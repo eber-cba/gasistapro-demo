@@ -1,31 +1,67 @@
-import { describe, it, expect } from 'vitest';
-import useStore from '../src/hooks/useStore';
-import { act } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { act } from "@testing-library/react";
+import useStore from "../src/hooks/useStore";
+import { generateUuid } from "../src/utils/uuid_wrapper";
 
-describe('useStore', () => {
-  it('should set potencia total', () => {
-    act(() => {
-      useStore.getState().setPotenciaTotal(10000);
-    });
-    expect(useStore.getState().potenciaTotal).toBe(10000);
+// Mock del wrapper de UUID
+vi.mock("../src/utils/uuid_wrapper", () => ({
+  generateUuid: vi.fn(),
+}));
+
+describe("Zustand Store - Professional Logic", () => {
+  let uuidCount;
+
+  beforeEach(() => {
+    // Resetear el store a su estado inicial antes de cada test
+    act(() => useStore.getState().resetState());
+
+    // Resetear el mock de UUID
+    uuidCount = 0;
+    vi.mocked(generateUuid).mockImplementation(
+      () => `mock-uuid-${++uuidCount}`
+    );
   });
 
-  it('should add to historial', () => {
-    act(() => {
-      useStore.getState().setResultadoActual({ aprobado: true });
-    });
-    expect(useStore.getState().historial.length).toBe(1);
-    expect(useStore.getState().historial[0].aprobado).toBe(true);
+  it("adds an artifact to a specific tramo", () => {
+    const tramoId = useStore.getState().tramos[0].id;
+    const artifact = { name: "Cocina", power_kcalh: 10000 };
+
+    act(() => useStore.getState().addArtifactToTramo(tramoId, artifact));
+
+    const tramo = useStore.getState().tramos[0];
+    expect(tramo.artifacts).toHaveLength(1);
+    expect(tramo.artifacts[0].name).toBe("Cocina");
   });
 
-  it('historial should not exceed 3 items', () => {
+  it("adds and removes an accesorio from a tramo", () => {
+    const tramoId = useStore.getState().tramos[0].id;
+
+    act(() => useStore.getState().addAccesorio(tramoId, "Codo 90°"));
+    let tramo = useStore.getState().tramos[0];
+    const accesorioId = tramo.accesorios[0].id;
+
+    expect(tramo.accesorios).toHaveLength(1);
+    expect(tramo.accesorios[0].name).toBe("Codo 90°");
+
+    act(() => useStore.getState().removeAccesorio(tramoId, accesorioId));
+    tramo = useStore.getState().tramos[0];
+    expect(tramo.accesorios).toHaveLength(0);
+  });
+
+  it("resets the state correctly", () => {
+    const tramoId = useStore.getState().tramos[0].id;
     act(() => {
-      useStore.getState().setResultadoActual({ aprobado: true });
-      useStore.getState().setResultadoActual({ aprobado: false });
-      useStore.getState().setResultadoActual({ aprobado: true });
-      useStore.getState().setResultadoActual({ aprobado: false });
+      useStore.getState().addTramo();
+      useStore.getState().addArtifactToTramo(tramoId, {
+        name: "Test",
+        power_kcalh: 1000,
+      });
     });
-    expect(useStore.getState().historial.length).toBe(3);
-    expect(useStore.getState().historial[0].aprobado).toBe(false);
+
+    act(() => useStore.getState().resetState());
+
+    const { tramos } = useStore.getState();
+    expect(tramos).toHaveLength(1);
+    expect(tramos[0].artifacts).toHaveLength(0);
   });
 });

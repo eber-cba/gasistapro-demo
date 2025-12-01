@@ -1,63 +1,144 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useStore from '../hooks/useStore';
-import { evaluarCañeria } from '../logic/calcularCañeria';
-import tabla from '../data/tablaCanos.json';
+import { v4 as uuidv4 } from 'uuid';
 
 const InputForm = () => {
   const {
-    potenciaTotal,
-    setPotenciaTotal,
-    longitud,
-    setLongitud,
-    diametroSeleccionado,
-    setDiametroSeleccionado,
-    setResultadoActual,
+    tramos,
+    addTramo,
+    updateTramo,
+    removeTramo,
+    calculateAllTramos,
+    uniqueAccessoryNames,
+    pipeDiameters,
+    addAccesorio,
+    updateAccesorio,
+    removeAccesorio,
   } = useStore();
 
-  const handleSubmit = (e) => {
+  const [newAccesorioType, setNewAccesorioType] = useState(uniqueAccessoryNames[0] || '');
+  const [newAccesorioQuantity, setNewAccesorioQuantity] = useState(1);
+  const [selectedTramoForAccesorio, setSelectedTramoForAccesorio] = useState(tramos[0]?.id || '');
+
+  // Update selectedTramoForAccesorio when tramos change
+  React.useEffect(() => {
+    if (tramos.length > 0 && !selectedTramoForAccesorio) {
+      setSelectedTramoForAccesorio(tramos[0].id);
+    } else if (tramos.length === 0) {
+      setSelectedTramoForAccesorio('');
+    }
+  }, [tramos, selectedTramoForAccesorio]);
+
+
+  const handleTramoInputChange = (id, field, value) => {
+    // Basic validation for numeric inputs
+    if (field === 'distancia_real') {
+      // Allow empty string or numbers with comma/period
+      if (value === '' || /^-?\d*([,\.]\d*)?$/.test(value)) {
+        updateTramo(id, field, value);
+      }
+    } else {
+      updateTramo(id, field, value);
+    }
+  };
+
+  const handleAccesorioAdd = (tramoId) => {
+    if (newAccesorioType && newAccesorioQuantity > 0) {
+      addAccesorio(tramoId, newAccesorioType, newAccesorioQuantity);
+      setNewAccesorioQuantity(1); // Reset quantity
+    }
+  };
+
+  const handleCalculate = (e) => {
     e.preventDefault();
-    const resultado = evaluarCañeria(tabla, Number(potenciaTotal), Number(longitud), diametroSeleccionado);
-    setResultadoActual(resultado);
+    calculateAllTramos();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="potencia">Potencia total (kcal/h)</label>
-        <input
-          type="number"
-          id="potencia"
-          value={potenciaTotal}
-          onChange={(e) => setPotenciaTotal(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="longitud">Longitud (m)</label>
-        <input
-          type="number"
-          id="longitud"
-          value={longitud}
-          onChange={(e) => setLongitud(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="diametro">Diámetro</label>
-        <select
-          id="diametro"
-          value={diametroSeleccionado}
-          onChange={(e) => setDiametroSeleccionado(e.target.value)}
-        >
-          {tabla.map((d) => (
-            <option key={d.diametro} value={d.diametro}>
-              {d.diametro}"
-            </option>
-          ))}
-        </select>
-      </div>
-      <button type="submit">Calcular</button>
-    </form>
+    <div className="input-form-container">
+      <form onSubmit={handleCalculate}>
+        {tramos.map((tramo, tramoIndex) => (
+          <div key={tramo.id} className="tramo-input-group card">
+            <h3>Tramo {tramoIndex + 1}: {tramo.tramo}</h3>
+            <div className="form-field">
+              <label htmlFor={`tramo-name-${tramo.id}`}>Nombre del Tramo:</label>
+              <input
+                id={`tramo-name-${tramo.id}`}
+                type="text"
+                value={tramo.tramo}
+                onChange={(e) => handleTramoInputChange(tramo.id, 'tramo', e.target.value)}
+                placeholder="Ej: Cocina - T1"
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor={`distancia-real-${tramo.id}`}>Distancia Real (m):</label>
+              <input
+                id={`distancia-real-${tramo.id}`}
+                type="text"
+                value={tramo.distancia_real}
+                onChange={(e) => handleTramoInputChange(tramo.id, 'distancia_real', e.target.value)}
+                placeholder="Ej: 22,10"
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor={`diametro-cana-${tramo.id}`}>Diámetro Cañería:</label>
+              <select
+                id={`diametro-cana-${tramo.id}`}
+                value={tramo.diametro_cana}
+                onChange={(e) => handleTramoInputChange(tramo.id, 'diametro_cana', e.target.value)}
+              >
+                {pipeDiameters.map((diameter, idx) => (
+                  <option key={idx} value={diameter}>{diameter}</option>
+                ))}
+              </select>
+            </div>
+
+            <h4>Accesorios del Tramo:</h4>
+            {tramo.accesorios.map((acc, accIndex) => (
+              <div key={acc.id} className="accesorio-item">
+                <span>{acc.accesorio} - Cant: {acc.cantidad}</span>
+                <button type="button" onClick={() => removeAccesorio(tramo.id, acc.id)} className="button-danger small-button">X</button>
+              </div>
+            ))}
+
+            <div className="add-accesorio-section">
+              <select value={newAccesorioType} onChange={(e) => setNewAccesorioType(e.target.value)}>
+                {uniqueAccessoryNames.map((name, idx) => (
+                  <option key={idx} value={name}>{name}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                min="1"
+                value={newAccesorioQuantity}
+                onChange={(e) => setNewAccesorioQuantity(parseInt(e.target.value) || 1)}
+              />
+              <button type="button" onClick={() => handleAccesorioAdd(tramo.id)} className="button-secondary">
+                Add Accesorio
+              </button>
+            </div>
+
+            {tramos.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeTramo(tramo.id)}
+                className="button-danger remove-tramo-button"
+              >
+                Eliminar Tramo
+              </button>
+            )}
+          </div>
+        ))}
+        <div className="form-actions">
+          <button type="button" onClick={addTramo} className="button-secondary add-tramo-button">
+            Añadir Tramo
+          </button>
+          <button type="submit" className="button-primary calculate-button">
+            Calcular Todo
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

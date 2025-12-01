@@ -1,0 +1,7 @@
+[
+  { "name": "Codo 90°", "value_m": 1.0 },
+  { "name": "Codo 45°", "value_m": 0.5 },
+  { "name": "Curva", "value_m": 0.8 },
+  { "name": "T derivación", "value_m": 1.2 },
+  { "name": "Llave Esférica", "value_m": 0.4 }
+]

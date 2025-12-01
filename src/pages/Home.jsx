@@ -1,48 +1,101 @@
-import React, { useState } from 'react';
-import Header from '../components/Header';
-import InputForm from '../components/InputForm';
-import ResultCard from '../components/ResultCard';
-import ChartResult from '../components/ChartResult';
-import PipePreview from '../components/PipePreview';
-import CanvasPlan from '../components/CanvasPlan';
+import React, { useState } from "react";
+import useStore from "../hooks/useStore";
+import Header from "../components/Header";
+import SelectorArtefactos from "../modules/ui/selectorArtefactos";
+import SelectorAccesorios from "../modules/ui/selectorAccesorios";
+import CuadroCalculo from "../modules/ui/cuadroCalculo";
+import ResultsDisplay from "../components/ResultsDisplay"; // Mantendremos este por ahora
+import { performFullCalculation } from "../logic/calculation";
+
+import "./Home.css";
 
 const Home = () => {
-  const [showDetails, setShowDetails] = useState(false);
+  const { tramos, setCalculationResults, resetState } = useStore();
+  const [selectedArtifacts, setSelectedArtifacts] = useState([]);
+  const [sumaEquivalencias, setSumaEquivalencias] = useState(0);
+  const [distanciaReal, setDistanciaReal] = useState(0);
+  const [distanciaRealStr, setDistanciaRealStr] = useState(""); // Estado para el string del input
+
+  const handleCalculate = () => {
+    // 1. Construir un "tramo único" a partir del estado actual
+    const tramoUnico = [
+      {
+        id: "tramo-unico",
+        name: "Tramo 1 (Más Lejano)",
+        distancia_real: distanciaReal,
+        artifacts: selectedArtifacts,
+        accesorios: [], // Los accesorios ya están calculados en sumaEquivalencias
+        distancia_equivalente: sumaEquivalencias, // Pasar la suma precalculada
+      },
+    ];
+
+    // 2. Ejecutar el cálculo completo
+    const finalResults = performFullCalculation(tramoUnico);
+
+    // 3. Actualizar el estado con los resultados
+    setCalculationResults(finalResults);
+  };
+
+  const handleReset = () => {
+    if (
+      window.confirm("¿Estás seguro de que quieres limpiar todos los datos?")
+    ) {
+      resetState();
+      setSelectedArtifacts([]);
+      setSumaEquivalencias(0);
+      setDistanciaReal(0);
+      setDistanciaRealStr("");
+    }
+  };
 
   return (
-    <div className="container">
+    <div className="home-container">
       <Header />
-      <div className="card">
-        <h3>Para tu papá (breve explicación)</h3>
-        <p>
-          1. Ingresás la potencia total (kcal/h) de los artefactos.
-          <br />
-          2. Indicás la longitud del tramo (m).
-          <br />
-          3. Seleccionás el diámetro de caño que pensás usar.
-          <br />
-          La app te dice si ese caño soporta la potencia y te recomienda otro diámetro si no.
-          Además podés dibujar un plano del recorrido y guardar la imagen.
-        </p>
-      </div>
+      <main className="main-grid">
+        <div className="input-column">
+          {/* Componentes nuevos */}
+          <SelectorArtefactos onSelectionChange={setSelectedArtifacts} />
+          <SelectorAccesorios onEquivalenciaChange={setSumaEquivalencias} />
 
-      <div className="card">
-        <InputForm />
-        <ResultCard />
-      </div>
+          <div className="distancia-real-input">
+            <label htmlFor="distanciaReal">Distancia Real (m):</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              id="distanciaReal"
+              value={distanciaRealStr}
+              onChange={(e) => {
+                const userInput = e.target.value;
+                setDistanciaRealStr(userInput); // Actualiza lo que ve el usuario
 
-      <div className="card">
-        <button onClick={() => setShowDetails(!showDetails)}>
-          {showDetails ? 'Ocultar' : 'Mostrar'} Detalles Gráficos y Plano
-        </button>
-        {showDetails && (
-          <div>
-            <ChartResult />
-            <PipePreview />
-            <CanvasPlan />
+                const sanitizedValue = userInput.replace(",", ".");
+                if (!isNaN(sanitizedValue) && sanitizedValue.trim() !== "") {
+                  setDistanciaReal(parseFloat(sanitizedValue));
+                } else {
+                  setDistanciaReal(0);
+                }
+              }}
+              placeholder="Ej: 19,35"
+            />
           </div>
-        )}
-      </div>
+
+          <CuadroCalculo
+            distanciaReal={distanciaReal}
+            sumaEquivalencias={sumaEquivalencias}
+          />
+        </div>
+        <div className="results-column">
+          <div className="action-buttons">
+            <button onClick={handleCalculate} className="calculate-btn">
+              Calcular Medida
+            </button>
+            <button onClick={handleReset} className="reset-btn">
+              Limpiar Todo
+            </button>
+          </div>
+          <ResultsDisplay /> {/* Esto se deberá refactorizar o reemplazar */}
+        </div>
+      </main>
     </div>
   );
 };

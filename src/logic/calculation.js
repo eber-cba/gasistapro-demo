@@ -1,0 +1,90 @@
+import { POWER_FACTOR, ACCESORIOS_EQUIVALENCIAS } from "../data/constants";
+
+// --- Funciones de Cálculo Puras ---
+
+export function calculateConsumption(artifacts) {
+  // Ahora, los artefactos seleccionados ya tienen su consumo calculado y redondeado.
+  return artifacts.reduce((sum, art) => sum + (art.consumo || 0), 0);
+}
+
+export function calculateEquivalentDistance(
+  accesorios,
+  sumaEquivalenciasPrecalculada
+) {
+  if (sumaEquivalenciasPrecalculada !== undefined) {
+    return sumaEquivalenciasPrecalculada;
+  }
+  return accesorios.reduce((total, acc) => {
+    const equivalencia = ACCESORIOS_EQUIVALENCIAS[acc.tipo] || 0;
+    return total + equivalencia * Number(acc.cantidad);
+  }, 0);
+}
+
+export function calculateDefinitiveDistance(real, equivalent) {
+  return Number(real) + equivalent;
+}
+
+export function selectDiameter(definitiveDistance, accumulatedConsumption) {
+  if (accumulatedConsumption <= 2.0 && definitiveDistance <= 20) {
+    return '½"';
+  }
+  if (accumulatedConsumption <= 4.0 && definitiveDistance <= 40) {
+    return '¾"';
+  }
+  return '1"';
+}
+
+// --- Lógica de Orquestación ---
+
+export function performFullCalculation(tramos) {
+  let calculatedTramos = JSON.parse(JSON.stringify(tramos));
+
+  // 1. Calcular consumo propio
+  calculatedTramos.forEach((t) => {
+    t.consumo_propio_m3h = calculateConsumption(t.artifacts);
+  });
+
+  // 2. Calcular consumo acumulado
+  let accumulatedConsumption = 0;
+  for (let i = calculatedTramos.length - 1; i >= 0; i--) {
+    accumulatedConsumption += calculatedTramos[i].consumo_propio_m3h;
+    calculatedTramos[i].consumo_acumulado_m3h = accumulatedConsumption;
+  }
+
+  // 3. Bucle de cálculo iterativo
+  calculatedTramos.forEach((t) => {
+    // La distancia equivalente de accesorios ya viene pre-calculada en `t.distancia_equivalente`
+    const distanciaEquivalenteAccesorios = t.distancia_equivalente || 0;
+
+    // Calcular la distancia definitiva CORRECTA
+    const distanciaDefinitiva = calculateDefinitiveDistance(
+      t.distancia_real,
+      distanciaEquivalenteAccesorios
+    );
+
+    // Asignar los valores correctos al tramo para la tabla final
+    t.distancia_equivalente = distanciaEquivalenteAccesorios;
+    t.distancia_definitiva = distanciaDefinitiva;
+
+    let diametroProvisorio = '½"'; // Siempre empezamos con el más chico
+    let diametroDefinitivo = "";
+
+    for (let i = 0; i < 5; i++) {
+      // Usar la distancia definitiva correcta para la selección de diámetro
+      diametroDefinitivo = selectDiameter(
+        distanciaDefinitiva,
+        t.consumo_acumulado_m3h
+      );
+
+      t.diametro_provisorio = diametroProvisorio;
+
+      if (diametroDefinitivo === diametroProvisorio) {
+        break; // Estabilizado
+      }
+      diametroProvisorio = diametroDefinitivo; // Siguiente iteración
+    }
+    t.diametro_definitivo = diametroDefinitivo;
+  });
+
+  return calculatedTramos;
+}

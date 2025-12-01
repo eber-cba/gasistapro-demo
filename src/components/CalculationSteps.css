@@ -1,0 +1,65 @@
+.calculation-steps-container {
+  margin-top: 24px;
+  background-color: var(--background-color);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.calculation-steps-container h4 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+
+.steps-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.step-icon {
+  margin-right: 12px;
+  font-size: 1.2rem;
+}
+
+.step-text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Estilos por tipo de paso */
+.info-step {
+  background-color: #e7f3fe;
+  color: #0c5460;
+}
+
+.step-header {
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-top: 8px;
+}
+
+.calc-step {
+  background-color: #f8f9fa;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.result-step {
+  background-color: #e9f7ef;
+  color: #155724;
+  font-weight: 500;
+}
+
+.error-step {
+  background-color: #fde8e8;
+  color: #c53030;
+}

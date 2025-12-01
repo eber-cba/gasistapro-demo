@@ -1,0 +1,82 @@
+[
+  {
+    "distancia": 5,
+    "consumo_0_5": "½\"",
+    "consumo_1_0": "½\"",
+    "consumo_1_5": "¾\"",
+    "consumo_2_0": "¾\"",
+    "consumo_3_0": "1\"",
+    "consumo_4_0": "1\"",
+    "consumo_5_0": "1¼\""
+  },
+  {
+    "distancia": 10,
+    "consumo_0_5": "½\"",
+    "consumo_1_0": "¾\"",
+    "consumo_1_5": "¾\"",
+    "consumo_2_0": "1\"",
+    "consumo_3_0": "1\"",
+    "consumo_4_0": "1¼\"",
+    "consumo_5_0": "1¼\""
+  },
+  {
+    "distancia": 15,
+    "consumo_0_5": "½\"",
+    "consumo_1_0": "¾\"",
+    "consumo_1_5": "1\"",
+    "consumo_2_0": "1\"",
+    "consumo_3_0": "1¼\"",
+    "consumo_4_0": "1¼\"",
+    "consumo_5_0": "1½\""
+  },
+  {
+    "distancia": 20,
+    "consumo_0_5": "¾\"",
+    "consumo_1_0": "¾\"",
+    "consumo_1_5": "1\"",
+    "consumo_2_0": "1¼\"",
+    "consumo_3_0": "1¼\"",
+    "consumo_4_0": "1½\"",
+    "consumo_5_0": "1½\""
+  },
+  {
+    "distancia": 25,
+    "consumo_0_5": "¾\"",
+    "consumo_1_0": "1\"",
+    "consumo_1_5": "1\"",
+    "consumo_2_0": "1¼\"",
+    "consumo_3_0": "1½\"",
+    "consumo_4_0": "1½\"",
+    "consumo_5_0": "2\""
+  },
+  {
+    "distancia": 30,
+    "consumo_0_5": "¾\"",
+    "consumo_1_0": "1\"",
+    "consumo_1_5": "1¼\"",
+    "consumo_2_0": "1¼\"",
+    "consumo_3_0": "1½\"",
+    "consumo_4_0": "2\"",
+    "consumo_5_0": "2\""
+  },
+  {
+    "distancia": 35,
+    "consumo_0_5": "1\"",
+    "consumo_1_0": "1\"",
+    "consumo_1_5": "1¼\"",
+    "consumo_2_0": "1½\"",
+    "consumo_3_0": "1½\"",
+    "consumo_4_0": "2\"",
+    "consumo_5_0": "2\""
+  },
+  {
+    "distancia": 40,
+    "consumo_0_5": "1\"",
+    "consumo_1_0": "1¼\"",
+    "consumo_1_5": "1¼\"",
+    "consumo_2_0": "1½\"",
+    "consumo_3_0": "2\"",
+    "consumo_4_0": "2\"",
+    "consumo_5_0": "2½\""
+  }
+]

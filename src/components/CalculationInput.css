@@ -1,0 +1,22 @@
+.calculation-input {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.tramos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.add-tramo-btn {
+  align-self: flex-start;
+  padding: 10px 15px;
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}

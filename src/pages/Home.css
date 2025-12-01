@@ -1,0 +1,125 @@
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --background-color: #f4f7f9;
+  --card-background-color: #ffffff;
+  --text-color: #343a40;
+  --border-color: #e9ecef;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+}
+
+body {
+  font-family: "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+}
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: minmax(400px, 1.2fr) 2fr;
+  gap: 24px;
+  padding: 24px;
+  flex-grow: 1;
+}
+
+.grid-item {
+  background-color: var(--card-background-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.input-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.results-column .card,
+.input-column .card {
+  padding: 20px; /* Padding interno para las tarjetas dentro de las columnas */
+}
+
+.calculate-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+.calculate-btn:hover {
+  background-color: #0069d9;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.calculate-btn,
+.reset-btn {
+  flex-grow: 1;
+  padding: 16px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reset-btn {
+  color: var(--secondary-color);
+  background-color: transparent;
+  border: 2px solid var(--border-color);
+}
+
+.reset-btn:hover {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.distancia-real-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--card-background-color);
+}
+
+.distancia-real-input label {
+  font-weight: bold;
+}
+
+.distancia-real-input input {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+/* Ajustar el botón de calcular para que no ocupe todo el ancho */
+.calculate-btn {
+  width: auto;
+}

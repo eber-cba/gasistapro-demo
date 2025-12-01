@@ -1,0 +1,9 @@
+[
+  { "name": "Cocina", "power_kcalh": 10000 },
+  { "name": "Termotanque", "power_kcalh": 14000 },
+  { "name": "Calefón", "power_kcalh": 12000 },
+  { "name": "Estufa chica", "power_kcalh": 2000 },
+  { "name": "Estufa mediana", "power_kcalh": 3000 },
+  { "name": "Estufa grande", "power_kcalh": 5000 },
+  { "name": "Calefactor T.B.U.", "power_kcalh": 3800 }
+]
