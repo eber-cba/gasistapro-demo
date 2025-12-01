@@ -7,6 +7,7 @@ import StepIndicator from "./StepIndicator";
 import SelectorArtefactos from "../modules/ui/selectorArtefactos";
 import SelectorAccesorios from "../modules/ui/selectorAccesorios";
 import { tablaEquivalencias } from "../modules/accesorios/equivalencias";
+import { ACCESORIOS_EQUIVALENCIAS } from "../data/constants";
 
 const TramoManager = () => {
   const {
@@ -143,16 +144,29 @@ const TramoManager = () => {
                   paddingBottom: "var(--spacing-4)",
                 }}
               >
-                <h2
-                  style={{
-                    fontSize: "var(--font-size-2xl)",
-                    fontWeight: "var(--font-weight-bold)",
-                    color: "var(--primary-color)",
-                    margin: 0,
-                  }}
-                >
-                  {tramo.name}
-                </h2>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-2)", flex: 1 }}>
+                  <input
+                    type="text"
+                    value={tramo.name}
+                    onChange={(e) => updateTramo(tramo.id, "name", e.target.value)}
+                    style={{
+                      fontSize: "var(--font-size-2xl)",
+                      fontWeight: "var(--font-weight-bold)",
+                      color: "var(--primary-color)",
+                      margin: 0,
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: "2px solid transparent",
+                      width: "100%",
+                      outline: "none",
+                      transition: "all 0.2s",
+                      cursor: "text",
+                    }}
+                    onFocus={(e) => e.target.style.borderBottom = "2px solid var(--primary-color)"}
+                    onBlur={(e) => e.target.style.borderBottom = "2px solid transparent"}
+                  />
+                  <span style={{ fontSize: "var(--font-size-lg)", opacity: 0.5 }}>✎</span>
+                </div>
                 {tramos.length > 1 && (
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -332,7 +346,14 @@ const TramoManager = () => {
                               }}>
                                 Dist. Equiv. Total: {(() => {
                                   const total = tramo.accesorios.reduce((sum, acc) => {
-                                    const equiv = tablaEquivalencias[acc.diametro]?.[acc.tipo] || 0;
+                                    // Try to get equivalencia using diametro if available
+                                    let equiv = 0;
+                                    if (acc.diametro && tablaEquivalencias[acc.diametro] && tablaEquivalencias[acc.diametro][acc.tipo]) {
+                                      equiv = tablaEquivalencias[acc.diametro][acc.tipo];
+                                    } else {
+                                      // Fallback to old constant if diametro not available
+                                      equiv = ACCESORIOS_EQUIVALENCIAS[acc.tipo] || 0;
+                                    }
                                     return sum + (equiv * acc.cantidad);
                                   }, 0);
                                   return total.toFixed(2);
