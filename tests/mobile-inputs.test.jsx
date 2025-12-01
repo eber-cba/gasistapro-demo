@@ -93,7 +93,7 @@ describe('Mobile Input Fixes', () => {
     it('should display actual number when cantidad > 0', () => {
       const accesorios = [
         { tipo: 'codo_90', diametro: '1/2', cantidad: 3 },
-        { tipo: 'tee', diametro: '3/4', cantidad: 7 }
+        { tipo: 'te_flujo_90', diametro: '3/4', cantidad: 7 }
       ];
 
       render(

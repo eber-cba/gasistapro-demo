@@ -11,7 +11,7 @@ describe('Calculation Logic Reproduction', () => {
         artifacts: [{ power_kcalh: 10000 }],
         accesorios: [
           { tipo: 'codo_90', diametro: '3/4', cantidad: 4 }, // 4 * 0.57 = 2.28
-          { tipo: 'tee', diametro: '1/2', cantidad: 2 }      // 2 * 0.78 = 1.56
+          { tipo: 'te_flujo_90', diametro: '1/2', cantidad: 2 }  // 2 * 0.78 = 1.56
         ]
       }
     ];
