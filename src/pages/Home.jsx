@@ -7,6 +7,7 @@ import useStore from "../hooks/useStore";
 import Header from "../components/Header";
 import TramoManager from "../components/TramoManager";
 import ResultsDisplay from "../components/ResultsDisplay";
+import TablasReferencia from "../components/TablasReferencia";
 import { performFullCalculation } from "../logic/calculation";
 
 const Home = () => {
@@ -173,6 +174,9 @@ const Home = () => {
           </div>
 
           <ResultsDisplay />
+
+          {/* Tablas de Referencia */}
+          <TablasReferencia />
         </div>
       </motion.main>
     </div>
