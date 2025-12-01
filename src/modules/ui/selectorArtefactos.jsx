@@ -191,6 +191,46 @@ const SelectorArtefactos = ({ selectedArtifacts = [], onAddArtifact, onRemoveArt
             {selectedArtifacts.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-2)" }}>
                 {selectedArtifacts.map((artifact) => (
+                  <motion.div
+                    key={artifact.id}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    whileHover={{ scale: 1.02 }}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "var(--spacing-3)",
+                      background: "linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)",
+                      borderRadius: "var(--radius-lg)",
+                      border: "1px solid var(--primary-light)",
+                      gap: "var(--spacing-2)",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div style={{ flex: "1 1 200px" }}>
+                      <div style={{ fontWeight: "var(--font-weight-semibold)", color: "var(--text-primary)" }}>
+                        {artifact.name}
+                      </div>
+                      <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-muted)" }}>
+                        <strong style={{ color: "var(--primary-color)" }}>{artifact.consumo.toLocaleString("es-AR")} m³/h</strong>
+                        {artifact.originalConsumo && (
+                          <small style={{ marginLeft: "var(--spacing-1)" }}>(real: {formatNumber(artifact.originalConsumo)})</small>
+                        )}
+                      </div>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleRemoveArtifact(artifact.id)}
+                      className="btn-danger btn-small"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <FaTimes /> Quitar
+                    </motion.button>
+                  </motion.div>
+                ))}
               </div>
             ) : (
               <motion.p

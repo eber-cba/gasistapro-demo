@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FaTools } from "react-icons/fa";
 import { tablaEquivalencias } from "../accesorios/equivalencias";
-import { tablaEquivalencias } from "../accesorios/equivalencias";
+
 
 const SelectorAccesorios = ({ accesorios = [], onAccesorioChange }) => {
   const handleAccesorioChange = (tipo, diametro, cantidad) => {
