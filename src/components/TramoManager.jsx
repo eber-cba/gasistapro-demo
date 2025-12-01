@@ -342,8 +342,28 @@ const TramoManager = () => {
                                   </thead>
                                   <tbody>
                                     {tramo.accesorios.map((acc, idx) => {
-                                      const nombre = nombresAccesorios[acc.tipo] || acc.tipo;
-                                      const equivUnit = (tablaEquivalencias[acc.diametro]?.[acc.tipo] || 0);
+                                      const nombre = nombresAccesorios[acc.tipo] || acc.tipo.replace(/_/g, " ");
+                                      // Use helper or fallback logic
+                                      let equivUnit = 0;
+                                      if (acc.diametro && tablaEquivalencias[acc.diametro]) {
+                                        // Try direct match first
+                                        if (tablaEquivalencias[acc.diametro][acc.tipo] !== undefined) {
+                                          equivUnit = tablaEquivalencias[acc.diametro][acc.tipo];
+                                        } 
+                                        // Legacy mappings
+                                        else if (acc.tipo === "tee") {
+                                          equivUnit = tablaEquivalencias[acc.diametro]["te_flujo_traves"];
+                                        }
+                                        else if (acc.tipo === "llave_paso") {
+                                          equivUnit = tablaEquivalencias[acc.diametro]["llave_macho"];
+                                        }
+                                      }
+                                      
+                                      // Fallback to old constants if still 0
+                                      if (equivUnit === 0) {
+                                        equivUnit = ACCESORIOS_EQUIVALENCIAS[acc.tipo] || 0;
+                                      }
+
                                       const subtotal = equivUnit * acc.cantidad;
                                       
                                       return (
@@ -389,9 +409,17 @@ const TramoManager = () => {
                                   {(() => {
                                     const total = tramo.accesorios.reduce((sum, acc) => {
                                       let equiv = 0;
-                                      if (acc.diametro && tablaEquivalencias[acc.diametro] && tablaEquivalencias[acc.diametro][acc.tipo]) {
-                                        equiv = tablaEquivalencias[acc.diametro][acc.tipo];
-                                      } else {
+                                      if (acc.diametro && tablaEquivalencias[acc.diametro]) {
+                                        if (tablaEquivalencias[acc.diametro][acc.tipo] !== undefined) {
+                                          equiv = tablaEquivalencias[acc.diametro][acc.tipo];
+                                        } else if (acc.tipo === "tee") {
+                                          equiv = tablaEquivalencias[acc.diametro]["te_flujo_traves"];
+                                        } else if (acc.tipo === "llave_paso") {
+                                          equiv = tablaEquivalencias[acc.diametro]["llave_macho"];
+                                        }
+                                      }
+                                      
+                                      if (equiv === 0) {
                                         equiv = ACCESORIOS_EQUIVALENCIAS[acc.tipo] || 0;
                                       }
                                       return sum + (equiv * acc.cantidad);

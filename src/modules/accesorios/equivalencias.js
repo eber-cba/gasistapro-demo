@@ -73,4 +73,23 @@ export const nombresAccesorios = {
   "te_flujo_traves": "Te Flujo Través",
   "te_flujo_90": "Te Flujo 90°",
   "llave_macho": "Llave Macho",
+  // Legacy mappings
+  "tee": "Te Flujo Través",
+  "llave_paso": "Llave de Paso",
+};
+
+// Helper para obtener equivalencia soportando legacy keys
+export const getEquivalencia = (diametro, tipo) => {
+  if (!tablaEquivalencias[diametro]) return 0;
+  
+  // Direct match
+  if (tablaEquivalencias[diametro][tipo] !== undefined) {
+    return tablaEquivalencias[diametro][tipo];
+  }
+  
+  // Legacy mappings
+  if (tipo === "tee") return tablaEquivalencias[diametro]["te_flujo_traves"];
+  if (tipo === "llave_paso") return tablaEquivalencias[diametro]["llave_macho"];
+  
+  return 0;
 };
