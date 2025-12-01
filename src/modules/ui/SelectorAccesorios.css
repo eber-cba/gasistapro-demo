@@ -1,0 +1,95 @@
+/* Mobile-first styles */
+.accesorios-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.accesorios-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+  .accesorios-table th,
+  .accesorios-table td {
+    display: table-cell;
+  }
+
+  .accesorios-table thead {
+    display: table-header-group;
+  }
+
+  .accesorios-table tr {
+    display: table-row;
+  }
+}
+
+/* Mobile styles (Cards) */
+@media (max-width: 767px) {
+  .accesorios-table,
+  .accesorios-table tbody,
+  .accesorios-table tr,
+  .accesorios-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .accesorios-table thead {
+    display: none; /* Hide headers on mobile */
+  }
+
+  .accesorios-table tr {
+    margin-bottom: var(--spacing-4);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-3);
+  }
+
+  .accesorios-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-2) 0;
+    text-align: right;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .accesorios-table td:last-child {
+    border-bottom: none;
+  }
+
+  .accesorios-table td::before {
+    content: attr(data-label);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    text-align: left;
+    margin-right: var(--spacing-4);
+  }
+
+  /* Specific adjustments for inputs on mobile */
+  .accesorios-table input {
+    width: 80px !important; /* Slightly larger on mobile */
+    padding: var(--spacing-2);
+  }
+
+  /* Make the first cell (Name) look like a header */
+  .accesorios-table td:first-child {
+    background: var(--bg-secondary);
+    margin: calc(var(--spacing-3) * -1);
+    margin-bottom: var(--spacing-2);
+    padding: var(--spacing-3);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-bottom: 1px solid var(--border-light);
+    font-weight: bold;
+    color: var(--primary-color);
+    justify-content: center;
+  }
+
+  .accesorios-table td:first-child::before {
+    display: none;
+  }
+}

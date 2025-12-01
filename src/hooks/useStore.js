@@ -5,7 +5,7 @@ import { generateUuid } from "../utils/uuid_wrapper";
 const createNewTramo = (id, name) => ({
   id,
   name,
-  distancia_real: "0",
+  distancia_real: "",
   accesorios: [], // Formato: [{ id, tipo: 'codo_90', cantidad: 1 }]
   artifacts: [], // Formato: [{ id, tipo: 'cocina', power_kcalh: 10000 }]
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FaTools } from "react-icons/fa";
 import { tablaEquivalencias } from "../accesorios/equivalencias";
-
+import "./SelectorAccesorios.css";
 
 const SelectorAccesorios = ({ accesorios = [], onAccesorioChange }) => {
   const handleAccesorioChange = (tipo, diametro, cantidad) => {
@@ -50,14 +50,8 @@ const SelectorAccesorios = ({ accesorios = [], onAccesorioChange }) => {
           <FaTools /> Seleccionar Accesorios
         </h2>
 
-        <div style={{ overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "var(--font-size-sm)",
-            }}
-          >
+        <div className="accesorios-table-container">
+          <table className="accesorios-table">
             <thead>
               <tr style={{ background: "var(--primary-gradient)", color: "white" }}>
                 <th style={{ padding: "var(--spacing-3)", textAlign: "left", borderRadius: "var(--radius-md) 0 0 0" }}>
@@ -94,31 +88,33 @@ const SelectorAccesorios = ({ accesorios = [], onAccesorioChange }) => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: (dIndex * 10 + tIndex) * 0.02 }}
+                      className={isHighlighted ? "highlighted-row" : ""}
                       style={{
                         background: isHighlighted
                           ? "linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)"
                           : dIndex % 2 === 0
                           ? "var(--bg-card)"
                           : "var(--bg-secondary)",
-                        borderBottom: "1px solid var(--border-light)",
-                        transition: "all var(--transition-base)",
+                        // Border bottom is handled by CSS class for mobile, but we can keep it here for desktop override if needed
+                        // or rely on CSS.
                       }}
                     >
-                      <td style={{ padding: "var(--spacing-3)", fontWeight: isHighlighted ? "var(--font-weight-semibold)" : "normal" }}>
-                        {tipo.replace("_", " ")}
+                      <td data-label="Accesorio">
+                        {tipo.replace(/_/g, " ")}
                       </td>
-                      <td style={{ padding: "var(--spacing-2)", textAlign: "center" }}>
+                      <td data-label="Cantidad" style={{ textAlign: "center" }}>
                         <input
                           type="number"
                           min="0"
-                          value={cantidad}
+                          value={cantidad === 0 ? '' : cantidad}
                           onChange={(e) =>
                             handleAccesorioChange(
                               tipo,
                               diametro,
-                              parseInt(e.target.value, 10) || 0
+                              e.target.value === '' ? 0 : parseInt(e.target.value, 10)
                             )
                           }
+                          placeholder="0"
                           style={{
                             width: "60px",
                             padding: "var(--spacing-2)",
@@ -132,15 +128,15 @@ const SelectorAccesorios = ({ accesorios = [], onAccesorioChange }) => {
                           }}
                         />
                       </td>
-                      <td style={{ padding: "var(--spacing-3)", textAlign: "center", color: "var(--text-secondary)" }}>
+                      <td data-label="Diámetro" style={{ textAlign: "center", color: "var(--text-secondary)" }}>
                         {diametro}
                       </td>
-                      <td style={{ padding: "var(--spacing-3)", textAlign: "center", color: "var(--text-secondary)" }}>
+                      <td data-label="Equivalencia" style={{ textAlign: "center", color: "var(--text-secondary)" }}>
                         {equivalencia}
                       </td>
                       <td
+                        data-label="Subtotal"
                         style={{
-                          padding: "var(--spacing-3)",
                           textAlign: "center",
                           fontWeight: "var(--font-weight-semibold)",
                           color: isHighlighted ? "var(--primary-color)" : "var(--text-muted)",
