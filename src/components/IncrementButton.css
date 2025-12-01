@@ -1,0 +1,164 @@
+/* Increment Button Styles */
+.increment-button-container {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-1);
+  border: 2px solid var(--border-light);
+  transition: all var(--transition-base);
+}
+
+.increment-button-container:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.increment-button-container:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* Button Sizes */
+.increment-button-small {
+  padding: var(--spacing-1);
+}
+
+.increment-button-medium {
+  padding: var(--spacing-2);
+}
+
+.increment-button-large {
+  padding: var(--spacing-3);
+}
+
+/* Increment/Decrement Buttons */
+.increment-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--primary-gradient);
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-lg);
+}
+
+.increment-button-small .increment-btn {
+  min-width: 36px;
+  min-height: 36px;
+  font-size: var(--font-size-base);
+}
+
+.increment-button-large .increment-btn {
+  min-width: 52px;
+  min-height: 52px;
+  font-size: var(--font-size-xl);
+}
+
+.increment-btn:hover:not(:disabled) {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.increment-btn:active:not(:disabled) {
+  box-shadow: var(--shadow-sm);
+  transform: translateY(0);
+}
+
+.increment-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--bg-muted);
+}
+
+.increment-btn.decrement {
+  background: linear-gradient(135deg, #ff6b9d 0%, #c94b78 100%);
+}
+
+.increment-btn.increment {
+  background: var(--primary-gradient);
+}
+
+/* Input Field */
+.increment-input {
+  width: 60px;
+  padding: var(--spacing-2);
+  text-align: center;
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.increment-button-small .increment-input {
+  width: 50px;
+  font-size: var(--font-size-base);
+}
+
+.increment-button-large .increment-input {
+  width: 70px;
+  font-size: var(--font-size-xl);
+}
+
+.increment-input::-webkit-outer-spin-button,
+.increment-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.increment-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.increment-input::placeholder {
+  color: var(--text-muted);
+}
+
+.increment-input:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Responsive for Mobile */
+@media (max-width: 768px) {
+  .increment-btn {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .increment-input {
+    width: 55px;
+  }
+}
+
+/* Accessibility */
+.increment-btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Animation for value change */
+@keyframes value-change {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.increment-input.value-changed {
+  animation: value-change 0.3s ease;
+}
