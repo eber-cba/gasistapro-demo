@@ -6,8 +6,10 @@ import useStore from "../hooks/useStore";
 import StepIndicator from "./StepIndicator";
 import SelectorArtefactos from "../modules/ui/selectorArtefactos";
 import SelectorAccesorios from "../modules/ui/selectorAccesorios";
+import CalculationBreakdown from "./CalculationBreakdown";
 import { tablaEquivalencias } from "../modules/accesorios/equivalencias";
 import { ACCESORIOS_EQUIVALENCIAS } from "../data/constants";
+
 
 const TramoManager = () => {
   const {
@@ -366,6 +368,9 @@ const TramoManager = () => {
                             </div>
                           )}
                         </div>
+
+                        {/* Calculation Breakdown */}
+                        <CalculationBreakdown tramo={tramo} />
 
                         <div style={{
                           marginTop: "var(--spacing-4)",
