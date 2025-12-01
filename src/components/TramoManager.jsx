@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaPlus, FaTrash, FaRuler } from "react-icons/fa";
+import { FaPlus, FaTrash, FaRuler, FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import toast from "react-hot-toast";
 import useStore from "../hooks/useStore";
+import StepIndicator from "./StepIndicator";
 import SelectorArtefactos from "../modules/ui/selectorArtefactos";
 import SelectorAccesorios from "../modules/ui/selectorAccesorios";
 
@@ -13,46 +15,21 @@ const TramoManager = () => {
     updateTramo,
     addArtifactToTramo,
     removeArtifactFromTramo,
-    addAccesorio, // We might need to adjust this if SelectorAccesorios passes full list
-    updateAccesorio, // Not used directly if we replace list
-    removeAccesorio, // Not used directly if we replace list
   } = useStore();
 
-  // Helper to update accessories list for a tramo
-  // Since SelectorAccesorios returns the full list of accessories with quantities,
-  // we need to sync this with the store.
-  // The store currently has add/update/remove actions for individual accessories.
-  // But SelectorAccesorios gives us a new list.
-  // We can either update the store to accept a full list, or we can diff here.
-  // Updating the store to accept a full list is cleaner.
-  // Let's assume we can update the store to accept a full list or we implement a helper here.
-  // Actually, let's update the store to have `setAccesoriosForTramo`.
-  // For now, let's implement a helper in the store or here.
-  // Wait, I can't easily update the store again without another tool call.
-  // I'll implement a helper here to sync.
-  // Actually, looking at useStore, `accesorios` is an array of {id, tipo, cantidad}.
-  // SelectorAccesorios returns array of {tipo, diametro, cantidad}.
-  // It doesn't have IDs.
-  // So we should probably replace the list in the store.
-  // But the store expects IDs.
-  // Let's modify the store to allow setting the whole list of accessories, generating IDs if needed.
-  // Or simpler: just use the list from SelectorAccesorios as the source of truth and update the store.
-  
-  // Let's check useStore again. It has `accesorios: []`.
-  // I'll add `setAccesorios` to useStore in the next step if needed, but for now let's try to use what we have.
-  // Actually, I can just use `updateTramo(tramoId, 'accesorios', newAccesorios)`!
-  // `updateTramo` updates a field.
-  // `tramos` is array of objects.
-  // `updateTramo` does: `t.id === tramoId ? { ...t, [field]: value } : t`
-  // So yes, I can just pass the new list of accessories!
-  // But I need to make sure they have IDs if the store logic elsewhere relies on IDs.
-  // The calculation logic doesn't seem to rely on IDs for accessories, just tipo and quantity.
-  // The store actions `updateAccesorio` use ID.
-  // If I replace the list, I should probably generate IDs or just not worry if I don't use individual update actions anymore.
-  
+  // Track current step for each tramo
+  const [tramoSteps, setTramoSteps] = useState({});
+
+  // Initialize step state for new tramos
+  useEffect(() => {
+    tramos.forEach(tramo => {
+      if (!tramoSteps[tramo.id]) {
+        setTramoSteps(prev => ({ ...prev, [tramo.id]: 1 }));
+      }
+    });
+  }, [tramos]);
+
   const handleAccesoriosChange = (tramoId, newAccesorios) => {
-    // Remove 'diametro' field and ensure they have IDs
-    // The calculation only needs {tipo, cantidad}
     const accessoriesWithIds = newAccesorios.map(a => ({
       id: a.id || Date.now() + Math.random().toString(),
       tipo: a.tipo,
@@ -61,112 +38,308 @@ const TramoManager = () => {
     updateTramo(tramoId, "accesorios", accessoriesWithIds);
   };
 
+  // Validation functions
+  const isStep1Complete = (tramo) => tramo.artifacts && tramo.artifacts.length > 0;
+  const isStep2Complete = (tramo) => tramo.distancia_real && parseFloat(tramo.distancia_real) > 0;
+  const isStep3Complete = () => true; // Accessories are optional
+  
+  const getCompletedSteps = (tramo) => {
+    const completed = [];
+    if (isStep1Complete(tramo)) completed.push(1);
+    if (isStep2Complete(tramo)) completed.push(2);
+    if (isStep3Complete(tramo)) completed.push(3);
+    return completed;
+  };
+
+  const canProceedToStep = (tramo, targetStep) => {
+    if (targetStep === 1) return true;
+    if (targetStep === 2) return isStep1Complete(tramo);
+    if (targetStep === 3) return isStep1Complete(tramo) && isStep2Complete(tramo);
+    if (targetStep === 4) return isStep1Complete(tramo) && isStep2Complete(tramo);
+    return false;
+  };
+
+  const handleNextStep = (tramoId, tramo) => {
+    const currentStep = tramoSteps[tramoId] || 1;
+    const nextStep = currentStep + 1;
+
+    if (nextStep > 4) return;
+
+    // Validate current step before proceeding
+    if (currentStep === 1 && !isStep1Complete(tramo)) {
+      toast.error("Por favor, selecciona un artefacto antes de continuar", {
+        icon: "⚠️",
+        style: { borderRadius: "12px", background: "#ff6b9d", color: "#fff" },
+      });
+      return;
+    }
+
+    if (currentStep === 2 && !isStep2Complete(tramo)) {
+      toast.error("Por favor, ingresa una distancia real válida", {
+        icon: "⚠️",
+        style: { borderRadius: "12px", background: "#ff6b9d", color: "#fff" },
+      });
+      return;
+    }
+
+    setTramoSteps(prev => ({ ...prev, [tramoId]: nextStep }));
+  };
+
+  const handlePrevStep = (tramoId) => {
+    const currentStep = tramoSteps[tramoId] || 1;
+    if (currentStep > 1) {
+      setTramoSteps(prev => ({ ...prev, [tramoId]: currentStep - 1 }));
+    }
+  };
+
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 300 : -300,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction) => ({
+      x: direction < 0 ? 300 : -300,
+      opacity: 0,
+    }),
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-8)" }}>
       <AnimatePresence>
-        {tramos.map((tramo, index) => (
-          <motion.div
-            key={tramo.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
-            style={{
-              background: "var(--bg-card)",
-              borderRadius: "var(--radius-xl)",
-              padding: "var(--spacing-6)",
-              boxShadow: "var(--shadow-md)",
-              border: "1px solid var(--border-light)",
-              position: "relative",
-            }}
-          >
-            {/* Tramo Header */}
-            <div
+        {tramos.map((tramo, index) => {
+          const currentStep = tramoSteps[tramo.id] || 1;
+          const completedSteps = getCompletedSteps(tramo);
+
+          return (
+            <motion.div
+              key={tramo.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "var(--spacing-6)",
-                borderBottom: "2px solid var(--border-light)",
-                paddingBottom: "var(--spacing-4)",
+                background: "var(--bg-card)",
+                borderRadius: "var(--radius-xl)",
+                padding: "var(--spacing-6)",
+                boxShadow: "var(--shadow-md)",
+                border: "1px solid var(--border-light)",
+                position: "relative",
               }}
             >
-              <h2
-                style={{
-                  fontSize: "var(--font-size-2xl)",
-                  fontWeight: "var(--font-weight-bold)",
-                  color: "var(--primary-color)",
-                  margin: 0,
-                }}
-              >
-                {tramo.name}
-              </h2>
-              {tramos.length > 1 && (
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => removeTramo(tramo.id)}
-                  className="btn-danger btn-icon"
-                  title="Eliminar Tramo"
-                  style={{
-                    padding: "var(--spacing-2)",
-                    borderRadius: "var(--radius-full)",
-                  }}
-                >
-                  <FaTrash />
-                </motion.button>
-              )}
-            </div>
-
-            {/* Distancia Real Input */}
-            <div className="card" style={{ marginBottom: "var(--spacing-6)", background: "var(--bg-secondary)" }}>
-              <label
-                htmlFor={`distancia-${tramo.id}`}
+              {/* Tramo Header */}
+              <div
                 style={{
                   display: "flex",
+                  justifyContent: "space-between",
                   alignItems: "center",
-                  gap: "var(--spacing-2)",
-                  marginBottom: "var(--spacing-2)",
-                  fontWeight: "var(--font-weight-semibold)",
-                  color: "var(--text-primary)",
-                  fontSize: "var(--font-size-lg)",
+                  marginBottom: "var(--spacing-6)",
+                  borderBottom: "2px solid var(--border-light)",
+                  paddingBottom: "var(--spacing-4)",
                 }}
               >
-                <FaRuler /> Distancia Real (metros):
-              </label>
-              <input
-                type="number"
-                id={`distancia-${tramo.id}`}
-                value={tramo.distancia_real}
-                onChange={(e) => updateTramo(tramo.id, "distancia_real", e.target.value)}
-                placeholder="Ej: 15.5"
-                step="0.01"
-                min="0"
-                style={{
-                  width: "100%",
-                  padding: "var(--spacing-3)",
-                  fontSize: "var(--font-size-lg)",
-                  borderRadius: "var(--radius-md)",
-                  border: "2px solid var(--border-color)",
-                }}
-              />
-            </div>
+                <h2
+                  style={{
+                    fontSize: "var(--font-size-2xl)",
+                    fontWeight: "var(--font-weight-bold)",
+                    color: "var(--primary-color)",
+                    margin: 0,
+                  }}
+                >
+                  {tramo.name}
+                </h2>
+                {tramos.length > 1 && (
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => removeTramo(tramo.id)}
+                    className="btn-danger btn-icon"
+                    title="Eliminar Tramo"
+                    style={{
+                      padding: "var(--spacing-2)",
+                      borderRadius: "var(--radius-full)",
+                    }}
+                  >
+                    <FaTrash />
+                  </motion.button>
+                )}
+              </div>
 
-            {/* Selectors */}
-            <div className="responsive-grid" style={{ display: "grid", gap: "var(--spacing-6)" }}>
-              <SelectorArtefactos
-                selectedArtifacts={tramo.artifacts}
-                onAddArtifact={(artifact) => addArtifactToTramo(tramo.id, artifact)}
-                onRemoveArtifact={(artifactId) => removeArtifactFromTramo(tramo.id, artifactId)}
-              />
-              
-              <SelectorAccesorios
-                accesorios={tramo.accesorios}
-                onAccesorioChange={(newAccesorios) => handleAccesoriosChange(tramo.id, newAccesorios)}
-              />
-            </div>
-          </motion.div>
-        ))}
+              {/* Step Indicator */}
+              <StepIndicator currentStep={currentStep} completedSteps={completedSteps} />
+
+              {/* Step Content with smooth transitions */}
+              <div style={{ minHeight: "400px", position: "relative", overflow: "hidden" }}>
+                <AnimatePresence mode="wait" custom={currentStep}>
+                  {currentStep === 1 && (
+                    <motion.div
+                      key="step1"
+                      custom={1}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <SelectorArtefactos
+                        selectedArtifacts={tramo.artifacts}
+                        onAddArtifact={(artifact) => addArtifactToTramo(tramo.id, artifact)}
+                        onRemoveArtifact={(artifactId) => removeArtifactFromTramo(tramo.id, artifactId)}
+                      />
+                    </motion.div>
+                  )}
+
+                  {currentStep === 2 && (
+                    <motion.div
+                      key="step2"
+                      custom={2}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <div className="card" style={{ background: "var(--bg-secondary)" }}>
+                        <label
+                          htmlFor={`distancia-${tramo.id}`}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "var(--spacing-2)",
+                            marginBottom: "var(--spacing-2)",
+                            fontWeight: "var(--font-weight-semibold)",
+                            color: "var(--text-primary)",
+                            fontSize: "var(--font-size-lg)",
+                          }}
+                        >
+                          <FaRuler /> Distancia Real (metros):
+                        </label>
+                        <input
+                          type="number"
+                          id={`distancia-${tramo.id}`}
+                          value={tramo.distancia_real}
+                          onChange={(e) => updateTramo(tramo.id, "distancia_real", e.target.value)}
+                          placeholder="Ej: 15.5"
+                          step="0.01"
+                          min="0"
+                          style={{
+                            width: "100%",
+                            padding: "var(--spacing-3)",
+                            fontSize: "var(--font-size-lg)",
+                            borderRadius: "var(--radius-md)",
+                            border: "2px solid var(--border-color)",
+                          }}
+                        />
+                        <div style={{
+                          marginTop: "var(--spacing-3)",
+                          padding: "var(--spacing-3)",
+                          background: "var(--bg-card)",
+                          borderRadius: "var(--radius-md)",
+                          fontSize: "var(--font-size-sm)",
+                          color: "var(--text-muted)",
+                        }}>
+                          💡 <strong>Tip:</strong> Ingresa la distancia en metros desde el medidor hasta este punto de consumo.
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {currentStep === 3 && (
+                    <motion.div
+                      key="step3"
+                      custom={3}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <SelectorAccesorios
+                        accesorios={tramo.accesorios}
+                        onAccesorioChange={(newAccesorios) => handleAccesoriosChange(tramo.id, newAccesorios)}
+                      />
+                    </motion.div>
+                  )}
+
+                  {currentStep === 4 && (
+                    <motion.div
+                      key="step4"
+                      custom={4}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <div className="card" style={{ background: "linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)" }}>
+                        <h3 style={{ color: "var(--primary-color)", marginBottom: "var(--spacing-4)" }}>
+                          ✅ Resumen del Tramo
+                        </h3>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-3)" }}>
+                          <div>
+                            <strong>Artefacto:</strong> {tramo.artifacts[0]?.name || "No seleccionado"}
+                          </div>
+                          <div>
+                            <strong>Distancia Real:</strong> {tramo.distancia_real || "0"} m
+                          </div>
+                          <div>
+                            <strong>Accesorios:</strong> {tramo.accesorios?.length || 0} seleccionados
+                          </div>
+                        </div>
+                        <div style={{
+                          marginTop: "var(--spacing-4)",
+                          padding: "var(--spacing-3)",
+                          background: "var(--bg-card)",
+                          borderRadius: "var(--radius-md)",
+                          fontSize: "var(--font-size-sm)",
+                          color: "var(--text-muted)",
+                        }}>
+                          ✨ Este tramo está listo. Puedes agregar más tramos o proceder al cálculo final.
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Navigation Buttons */}
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "var(--spacing-6)",
+                gap: "var(--spacing-3)",
+              }}>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handlePrevStep(tramo.id)}
+                  className="btn-outline"
+                  disabled={currentStep === 1}
+                  style={{
+                    opacity: currentStep === 1 ? 0.5 : 1,
+                    cursor: currentStep === 1 ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <FaArrowLeft /> Anterior
+                </motion.button>
+
+                {currentStep < 4 && (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleNextStep(tramo.id, tramo)}
+                    className="btn-primary"
+                  >
+                    Siguiente <FaArrowRight />
+                  </motion.button>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
       </AnimatePresence>
 
       {/* Add Tramo Button */}
