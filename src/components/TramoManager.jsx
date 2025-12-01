@@ -7,7 +7,8 @@ import StepIndicator from "./StepIndicator";
 import SelectorArtefactos from "../modules/ui/selectorArtefactos";
 import SelectorAccesorios from "../modules/ui/selectorAccesorios";
 import CalculationBreakdown from "./CalculationBreakdown";
-import { tablaEquivalencias, ACCESORIOS_EQUIVALENCIAS, nombresAccesorios } from "../modules/accesorios/equivalencias";
+import { tablaEquivalencias, nombresAccesorios } from "../modules/accesorios/equivalencias";
+import { ACCESORIOS_EQUIVALENCIAS } from "../data/constants";
 
 const TramoManager = () => {
   const {
