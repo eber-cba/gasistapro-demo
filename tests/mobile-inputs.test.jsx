@@ -6,14 +6,14 @@ import TramoManager from '../src/components/TramoManager';
 import useStore from '../src/hooks/useStore';
 
 describe('Mobile Input Fixes', () => {
-  describe('SelectorAccesorios - Accessories Input', () => {
+  describe('SelectorAccesorios - New UI', () => {
     const mockOnAccesorioChange = vi.fn();
 
     beforeEach(() => {
       mockOnAccesorioChange.mockClear();
     });
 
-    it('should render with empty input when cantidad is 0', () => {
+    it('should render filters and grid container', () => {
       render(
         <SelectorAccesorios 
           accesorios={[]} 
@@ -21,76 +21,16 @@ describe('Mobile Input Fixes', () => {
         />
       );
 
-      const inputs = screen.getAllByRole('spinbutton');
-      // All inputs should be empty (not showing "0")
-      inputs.forEach(input => {
-        expect(input.value).toBe('');
-      });
+      // Check for filters
+      expect(screen.getByText('Filtrar por Diámetro:')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Ej: codo, te, llave...')).toBeInTheDocument();
+      
+      // Check for grid container
+      const gridContainer = document.querySelector('.accesorios-grid-container');
+      expect(gridContainer).toBeInTheDocument();
     });
 
-    it('should show placeholder "0" when input is empty', () => {
-      render(
-        <SelectorAccesorios 
-          accesorios={[]} 
-          onAccesorioChange={mockOnAccesorioChange} 
-        />
-      );
-
-      const inputs = screen.getAllByRole('spinbutton');
-      inputs.forEach(input => {
-        expect(input).toHaveAttribute('placeholder', '0');
-      });
-    });
-
-    it('should not show leading zero when entering a number', async () => {
-      render(
-        <SelectorAccesorios 
-          accesorios={[]} 
-          onAccesorioChange={mockOnAccesorioChange} 
-        />
-      );
-
-      const firstInput = screen.getAllByRole('spinbutton')[0];
-      
-      // Simulate typing "2"
-      fireEvent.change(firstInput, { target: { value: '2' } });
-      
-      await waitFor(() => {
-        expect(mockOnAccesorioChange).toHaveBeenCalled();
-        const callArgs = mockOnAccesorioChange.mock.calls[0][0];
-        expect(callArgs[0].cantidad).toBe(2);
-      });
-    });
-
-    it('should handle empty input correctly (set to 0)', async () => {
-      const accesorios = [
-        { tipo: 'codo_90', diametro: '1/2', cantidad: 5 }
-      ];
-
-      render(
-        <SelectorAccesorios 
-          accesorios={accesorios} 
-          onAccesorioChange={mockOnAccesorioChange} 
-        />
-      );
-
-      const inputs = screen.getAllByRole('spinbutton');
-      const inputWithValue = inputs.find(input => input.value === '5');
-      
-      expect(inputWithValue).toBeDefined();
-      
-      // Clear the input
-      fireEvent.change(inputWithValue, { target: { value: '' } });
-      
-      await waitFor(() => {
-        expect(mockOnAccesorioChange).toHaveBeenCalled();
-        const callArgs = mockOnAccesorioChange.mock.calls[0][0];
-        // Should remove the accessory when cantidad is 0
-        expect(callArgs.length).toBe(0);
-      });
-    });
-
-    it('should display actual number when cantidad > 0', () => {
+    it('should display quantities correctly in cards', () => {
       const accesorios = [
         { tipo: 'codo_90', diametro: '1/2', cantidad: 3 },
         { tipo: 'te_flujo_90', diametro: '3/4', cantidad: 7 }
@@ -103,45 +43,47 @@ describe('Mobile Input Fixes', () => {
         />
       );
 
-      const inputs = screen.getAllByRole('spinbutton');
-      
-      // Check that we have inputs with the expected values
-      const values = inputs.map(input => input.value);
-      expect(values).toContain('3');
-      expect(values).toContain('7');
+      // We should find the quantities displayed in the cards
+      expect(screen.getByText('3')).toBeInTheDocument();
+      expect(screen.getByText('7')).toBeInTheDocument();
     });
 
-    it('should have responsive CSS classes', () => {
-      const { container } = render(
+    it('should call onAccesorioChange when clicking plus button', () => {
+      render(
         <SelectorAccesorios 
           accesorios={[]} 
           onAccesorioChange={mockOnAccesorioChange} 
         />
       );
 
-      const tableContainer = container.querySelector('.accesorios-table-container');
-      const table = container.querySelector('.accesorios-table');
+      // Find all plus buttons
+      const plusButtons = document.querySelectorAll('.btn-plus');
+      expect(plusButtons.length).toBeGreaterThan(0);
       
-      expect(tableContainer).toBeInTheDocument();
-      expect(table).toBeInTheDocument();
+      // Click the first one
+      fireEvent.click(plusButtons[0]);
+      
+      expect(mockOnAccesorioChange).toHaveBeenCalled();
+      const callArgs = mockOnAccesorioChange.mock.calls[0][0];
+      expect(callArgs.length).toBe(1);
+      expect(callArgs[0].cantidad).toBe(1);
     });
 
-    it('should have data-label attributes for mobile responsiveness', () => {
-      const { container } = render(
+    it('should filter by search term', () => {
+      render(
         <SelectorAccesorios 
           accesorios={[]} 
           onAccesorioChange={mockOnAccesorioChange} 
         />
       );
 
-      const firstRow = container.querySelector('tbody tr');
-      const cells = firstRow?.querySelectorAll('td');
+      const searchInput = screen.getByPlaceholderText('Ej: codo, te, llave...');
       
-      expect(cells?.[0]).toHaveAttribute('data-label', 'Accesorio');
-      expect(cells?.[1]).toHaveAttribute('data-label', 'Cantidad');
-      expect(cells?.[2]).toHaveAttribute('data-label', 'Diámetro');
-      expect(cells?.[3]).toHaveAttribute('data-label', 'Equivalencia');
-      expect(cells?.[4]).toHaveAttribute('data-label', 'Subtotal');
+      // Search for something specific that should exist
+      fireEvent.change(searchInput, { target: { value: 'Llave Macho' } });
+      
+      // Should show Llave Macho cards
+      expect(screen.getAllByText('Llave Macho').length).toBeGreaterThan(0);
     });
   });
 
